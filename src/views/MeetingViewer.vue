@@ -63,6 +63,14 @@ function getAgendaProgressStatus(item: any, index: number) {
   return explicit[item.id] || (index === 0 ? 'pending' : 'not-yet')
 }
 
+function getAgendaStart(item: any) {
+  return item.startTime || item.time
+}
+
+function getAgendaEnd(item: any) {
+  return item.endTime || '-'
+}
+
 function goBack() {
   portalStore.clearActivePortal()
   router.push('/')
@@ -124,7 +132,7 @@ function selectDocument(doc: any) {
                 <div class="agenda-title-bar">
                   <div class="agenda-title-tabs" role="tablist" aria-label="ព័ត៌មានកិច្ចប្រជុំ">
                     <button :class="['tab', 'agenda-title-tab', { active: activePanel === 'agenda' }]" type="button" role="tab" :aria-selected="activePanel === 'agenda'" @click="showAgenda">របៀបវារៈ</button>
-                    <button :class="['tab', 'agenda-title-tab', { active: activePanel === 'participants' }]" type="button" role="tab" :aria-selected="activePanel === 'participants'" @click="showParticipants">ប្លង់កៅអី</button>
+                    <button class="tab agenda-title-tab" type="button" role="tab" aria-selected="false" @click="showParticipants">ប្លង់កៅអី</button>
                   </div>
                 </div>
                 <div class="progress-legend" aria-label="ស្ថានភាពរបៀបវារៈ">
@@ -151,8 +159,8 @@ function selectDocument(doc: any) {
                         <div v-if="index < (meeting.agenda || []).filter((i: any) => i.session === session).length - 1" class="timeline-line" />
                       </div>
                       <div class="agenda-time-col">
-                        <div>{{ item.startTime || item.time }}</div>
-                        <div class="time-end">{{ item.endTime || '-' }}</div>
+                        <div>{{ getAgendaStart(item) }}</div>
+                        <div class="time-end">{{ getAgendaEnd(item) }}</div>
                       </div>
                       <div class="agenda-content-col">
                         <div class="agenda-title">{{ getDisplayAgendaItem(item).title }}</div>

@@ -18,7 +18,7 @@ const router = createRouter({
     {
       path: '/viewer-calendar',
       name: 'viewer-calendar',
-      component: () => import('@/views/ViewerCalendar.vue'),
+      component: () => import('@/components/calendar/ViewerCalendar.vue'),
     },
     {
       path: '/attendance',

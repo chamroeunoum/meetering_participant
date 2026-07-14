@@ -6,11 +6,11 @@ export function getUsers() {
   return users
 }
 
-export function getUserById(id) {
+export function getUserById(id: string) {
   return users.find((user) => user.id === id)
 }
 
-export function getUserName(user) {
+export function getUserName(user: any) {
   if (!user) return 'Unknown'
   return `${user.courtesy} ${user.firstName} ${user.lastName}`
 }
@@ -19,15 +19,15 @@ export function getMeetings() {
   return meetings
 }
 
-export function getMeetingById(id) {
+export function getMeetingById(id: string) {
   return meetings.find((meeting) => meeting.id === id)
 }
 
-export function getActivityLogs(meetingId) {
-  return activityLogs[meetingId] || []
+export function getActivityLogs(meetingId: string) {
+  return (activityLogs as Record<string, unknown[]>)[meetingId] || []
 }
 
-export function formatDate(dateStr) {
+export function formatDate(dateStr: string) {
   const date = new Date(`${dateStr}T00:00:00`)
   return date.toLocaleDateString('en-US', {
     weekday: 'short',
@@ -37,11 +37,11 @@ export function formatDate(dateStr) {
   })
 }
 
-export function formatTimeRange(start, end) {
+export function formatTimeRange(start: string, end: string) {
   return `${start} - ${end}`
 }
 
-export function getStatusBadge(status) {
+export function getStatusBadge(status: string) {
   const map = {
     scheduled: 'badge-info',
     completed: 'badge-success',
@@ -50,15 +50,15 @@ export function getStatusBadge(status) {
     archived: 'badge-neutral',
     cancelled: 'badge-danger',
   }
-  return map[status] || 'badge-neutral'
+  return (map as Record<string, string>)[status] || 'badge-neutral'
 }
 
-export function getFileTypeIcon(type) {
+export function getFileTypeIcon(type: string) {
   const map = {
     document: 'DOC',
     video: 'VID',
     spreadsheet: 'XLS',
     other: 'FILE',
   }
-  return map[type] || 'FILE'
+  return (map as Record<string, string>)[type] || 'FILE'
 }
