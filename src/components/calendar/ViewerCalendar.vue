@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { ArrowLeft, Calendar } from 'lucide-vue-next'
 import { usePortalStore } from '@/stores/portal'
 import {
   calendarPreviewTitles,
@@ -85,10 +86,15 @@ function previewTitle(meeting: CalendarMeeting) {
 
 <template>
   <div class="embedded-portal calendar-portal">
-    <div class="embedded-toolbar">
-      <button class="btn btn-secondary" type="button" @click="goBack">ត្រឡប់ទៅផ្ទាំងសេវាកម្ម</button>
-      <span>មើលប្រតិទិនកិច្ចប្រជុំ</span>
-    </div>
+    <header class="service-header">
+      <button class="back-btn" type="button" @click="goBack">
+        <ArrowLeft :size="20" :stroke-width="2.5" /> ត្រឡប់
+      </button>
+      <div class="header-center">
+        <div class="header-icon"><Calendar :size="22" :stroke-width="2" /></div>
+        <h1 class="header-title">មើលប្រតិទិនកិច្ចប្រជុំ</h1>
+      </div>
+    </header>
 
     <main class="page-content calendar-page-content">
       <div v-if="viewMode === 'month'" class="calendar-month-layout">

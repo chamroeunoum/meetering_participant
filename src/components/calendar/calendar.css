@@ -1,5 +1,12 @@
+.service-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px 16px; border-bottom: 1px solid var(--color-border-soft); }
+.back-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 14px; font-weight: 600; color: var(--color-primary); background: rgba(255,255,255,0.8); border: 1px solid var(--color-border); border-radius: 10px; cursor: pointer; transition: all var(--transition); }
+.back-btn:hover { background: #fff; border-color: var(--color-primary); }
+.header-center { display: flex; align-items: center; gap: 10px; }
+.header-icon { display: grid; place-items: center; width: 40px; height: 40px; color: var(--color-primary); background: rgba(13,98,213,0.08); border-radius: 10px; }
+.header-title { margin: 0; font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--color-text); }
+
 .calendar-page-content {
-  padding-top: 18px;
+  padding-top: 0;
   background: #f7f8fb;
 }
 

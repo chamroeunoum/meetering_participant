@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { Calendar, Clock, MapPin, Users } from 'lucide-vue-next'
+import { useRoute, useRouter } from 'vue-router'
+import { ArrowLeft, Calendar, Clock, FileText, MapPin, Users } from 'lucide-vue-next'
 import { usePortalStore } from '@/stores/portal'
 import { useMeetingWorkspaceStore } from '@/stores/meetingWorkspace'
 import {
@@ -19,10 +19,12 @@ import DraftTab from '@/components/meeting/DraftTab.vue'
 import DraftHistoryTab from '@/components/meeting/DraftHistoryTab.vue'
 
 const router = useRouter()
+const route = useRoute()
 const portalStore = usePortalStore()
 const workspace = useMeetingWorkspaceStore()
 
 const meeting = computed(() => getMeetingById('m1'))
+const isFromCalendar = computed(() => route.query.from === 'calendar')
 const ws = computed(() => (meeting.value ? workspace.getWorkspace(meeting.value.id) : null))
 
 const STATUS_LABELS: Record<string, string> = {
@@ -56,6 +58,17 @@ const tabs = [
 type TabKey = (typeof tabs)[number]['key']
 const activeTab = ref<TabKey>('agenda')
 
+const pdfModalDoc = ref<any>(null)
+const showPdfModal = ref(false)
+function openPdfModal(doc: any) {
+  pdfModalDoc.value = doc
+  showPdfModal.value = true
+}
+function closePdfModal() {
+  showPdfModal.value = false
+  pdfModalDoc.value = null
+}
+
 function getAgendaStart(item: any) {
   return item.startTime || item.time
 }
@@ -76,11 +89,16 @@ function goBack() {
 
 <template>
   <div class="embedded-portal">
-    <div class="embedded-toolbar">
-      <button class="btn btn-secondary" type="button" @click="goBack">ត្រឡប់ទៅផ្ទាំងសេវាកម្ម</button>
-      <span>មើលព័ត៌មានកិច្ចប្រជុំ</span>
-    </div>
-    <main class="page-content" v-if="meeting && ws">
+    <header class="service-header">
+      <button class="back-btn" type="button" @click="goBack">
+        <ArrowLeft :size="20" :stroke-width="2.5" /> ត្រឡប់
+      </button>
+      <div class="header-center">
+        <div class="header-icon"><FileText :size="22" :stroke-width="2" /></div>
+        <h1 class="header-title">មើលព័ត៌មានកិច្ចប្រជុំ</h1>
+      </div>
+    </header>
+    <div class="page-content">
       <div class="meeting-detail">
         <div class="detail-header card">
           <div class="card-body">
@@ -115,16 +133,7 @@ function goBack() {
             </div>
           </div>
         </div>
-        <h2 class="meeting-title">{{ getDisplayMeetingTitle(meeting) }}</h2>
-        <div class="meeting-meta-grid">
-          <div class="meta-item"><span class="meta-label">ប្រភេទ</span><span class="meta-value">{{ meeting.meetingType }}</span></div>
-          <div class="meta-item"><span class="meta-label">អ្នកចូលរួម</span><span class="meta-value">{{ meeting.expectedAttendees }}</span></div>
-          <div class="meta-item"><span class="meta-label">លេខកូដ</span><span class="meta-value code">{{ meeting.meetingCode }}</span></div>
-          <div class="meta-item"><span class="meta-label">តំណ</span><a :href="meeting.meetingLink" target="_blank" class="meta-value link">{{ meeting.meetingLink }}</a></div>
-        </div>
-        <button class="room-guide-btn" type="button" @click="goToRoomGuide">
-          <MapPin :size="16" :stroke-width="2.5" /> មើលទីតាំងបន្ទប់ប្រជុំ
-        </button>
+
       </div>
 
         <div class="agenda-layout">
@@ -146,69 +155,7 @@ function goBack() {
                     </button>
                   </div>
                 </div>
-                <div class="progress-legend" aria-label="ស្ថានភាពរបៀបវារៈ">
-                  <span><i class="legend-dot complete" />បានបញ្ចប់</span>
-                  <span><i class="legend-dot pending" />កំពុងរង់ចាំ</span>
-                  <span><i class="legend-dot not-yet" />មិនទាន់ដល់</span>
-                </div>
               </div>
-              <div class="card-body agenda-sessions">
-                <section v-for="session in ['morning', 'afternoon']" :key="session" class="session-block">
-                  <div class="session-title">{{ session === 'morning' ? 'វគ្គព្រឹក' : 'វគ្គរសៀល' }}</div>
-                  <div v-if="!(meeting.agenda || []).filter((i: any) => i.session === session).length" class="empty-state compact">មិនមានធាតុ</div>
-                  <div v-else class="agenda-table">
-                    <div class="agenda-header-row">
-                      <span /><span>ម៉ោង</span><span>ចំណងជើង និងពិពណ៌នា</span>
-                    </div>
-                    <div
-                      v-for="(item, index) in (meeting.agenda || []).filter((i: any) => i.session === session)"
-                      :key="item.id"
-                      :class="['agenda-row', `progress-${getAgendaProgressStatus(item, index)}`, { last: index === (meeting.agenda || []).filter((i: any) => i.session === session).length - 1 }]"
-                    >
-                      <div class="agenda-timeline">
-                        <div class="timeline-node" />
-                        <div v-if="index < (meeting.agenda || []).filter((i: any) => i.session === session).length - 1" class="timeline-line" />
-                      </div>
-                      <div class="agenda-time-col">
-                        <div>{{ getAgendaStart(item) }}</div>
-                        <div class="time-end">{{ getAgendaEnd(item) }}</div>
-                      </div>
-                      <div class="agenda-content-col">
-                        <div class="agenda-title">{{ getDisplayAgendaItem(item).title }}</div>
-                        <div class="agenda-desc">{{ getDisplayAgendaItem(item).description }}</div>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              </div>
-            </div>
-
-            <!-- Participant/Seating Layout Panel -->
-            <div v-if="activeTab === 'participants'" class="card">
-              <div class="card-header">
-                <div class="agenda-title-bar">
-                  <div class="agenda-title-tabs" role="tablist" aria-label="ព័ត៌មានកិច្ចប្រជុំ">
-                    <button
-                      v-for="tab in tabs"
-                      :key="tab.key"
-                      :class="['tab', 'agenda-title-tab', { active: activeTab === tab.key }]"
-                      type="button"
-                      role="tab"
-                      :aria-selected="activeTab === tab.key"
-                      @click="activeTab = tab.key"
-                    >
-                      {{ tab.label }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <!-- Your participants/seating content goes here -->
-              <div class="card-body">
-                <!-- Add your seating layout content here -->
-              </div>
-            </div>
-          </div>
-        </div>
               <div class="card-body">
                 <AgendaTab v-if="activeTab === 'agenda'" :meeting="meeting" />
                 <MemberListTab v-else-if="activeTab === 'members'" :meeting="meeting" />
@@ -218,72 +165,9 @@ function goBack() {
               </div>
             </div>
           </div>
-        </section>
-      </div>
-
-      <!-- Participants -->
-      <div v-if="activeTab === 'participants'" class="panel">
-        <div class="p-grid">
-          <div v-for="p in getParticipantList()" :key="p.id" class="p-card">
-            <span class="p-av">{{ p.avatar || p.firstName?.[0] || '--' }}</span>
-            <div class="p-info">
-              <strong>{{ getUserName(p) }}</strong>
-              <span>{{ p.position || p.title || '-' }}</span>
-            </div>
-          </div>
-          <div v-if="!getParticipantList().length" class="empty-hint">មិនមានអ្នកចូលរួម</div>
         </div>
-      </div>
 
-      <!-- Legal documents -->
-      <div v-if="activeTab === 'legal'" class="panel">
-        <div v-if="legalDocs.length" class="d-list">
-          <div v-for="doc in legalDocs" :key="doc.id" class="d-item">
-            <span class="d-ico">📄</span>
-            <div class="d-info">
-              <strong>{{ doc.name }}</strong>
-              <span>{{ formatSize(doc.size) || (doc.pageCount ? doc.pageCount + ' ទំព័រ' : '') }}</span>
-            </div>
-            <button class="d-btn" type="button" @click="openPdfModal(doc)"><ExternalLink :size="14" :stroke-width="2.5" /> មើល</button>
-          </div>
-        </div>
-        <div v-else class="empty-hint">មិនមានឯកសារច្បាប់</div>
-      </div>
-
-      <!-- Reference documents (PDF opens in modal) -->
-      <div v-if="activeTab === 'references'" class="panel">
-        <div v-if="referenceDocs.length" class="d-list">
-          <div v-for="doc in referenceDocs" :key="doc.id" class="d-item">
-            <span class="d-ico">📄</span>
-            <div class="d-info">
-              <strong>{{ doc.name }}</strong>
-              <span>{{ formatSize(doc.size) }}</span>
-            </div>
-            <button class="d-btn" type="button" @click="openPdfModal(doc)"><ExternalLink :size="14" :stroke-width="2.5" /> មើល</button>
-          </div>
-        </div>
-        <div v-else class="empty-hint">មិនមានឯកសារយោង</div>
-      </div>
-
-      <!-- Meeting history -->
-      <div v-if="activeTab === 'history'" class="panel">
-        <div class="h-list">
-          <div v-for="m in meetingHistory" :key="m.id" class="h-item">
-            <div class="h-date">
-              <span class="h-d">{{ m.date?.slice(8) }}</span>
-              <span class="h-mo">{{ m.date?.slice(0, 7) }}</span>
-            </div>
-            <div class="h-info">
-              <strong>{{ getDisplayMeetingTitle(m) }}</strong>
-              <span>{{ formatDate(m.date) }} · {{ formatTimeRange(m.startTime, m.endTime) }} · {{ getDisplayVenue(m) }}</span>
-              <span class="h-badge">{{ displayMeetingStatus(m.status) }}</span>
-            </div>
-          </div>
-          <div v-if="!meetingHistory.length" class="empty-hint">មិនមានប្រវត្តិ</div>
-        </div>
-      </div>
-    </template>
-    <div v-else class="empty-hint" style="padding: 60px; text-align: center;">រកមិនឃើញកិច្ចប្រជុំ</div>
+    </div>
   </div>
 
   <!-- PDF Modal -->
@@ -294,16 +178,25 @@ function goBack() {
           <strong class="pdf-modal-title">{{ pdfModalDoc.name }}</strong>
           <button class="pdf-modal-close" type="button" @click="closePdfModal">✕</button>
         </div>
-        <iframe class="pdf-modal-frame" :src="pdfModalDoc.url" title="PDF" />
+        <iframe class="pdf-modal-frame" :src="pdfModalDoc.url" title="PDF"></iframe>
       </div>
     </div>
   </Teleport>
 </template>
 
 <style scoped>
+.service-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px 16px; border-bottom: 1px solid var(--color-border-soft); }
+.back-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 14px; font-weight: 600; color: var(--color-primary); background: rgba(255,255,255,0.8); border: 1px solid var(--color-border); border-radius: 10px; cursor: pointer; transition: all var(--transition); }
+.back-btn:hover { background: #fff; border-color: var(--color-primary); }
+.header-center { display: flex; align-items: center; gap: 10px; }
+.header-icon { display: grid; place-items: center; width: 40px; height: 40px; color: var(--color-primary); background: rgba(13,98,213,0.08); border-radius: 10px; }
+.header-title { margin: 0; font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--color-text); }
+.embedded-portal { flex: 1; width: 100%; }
+.page-content { width: 100%; }
 .meeting-detail {
   display: grid;
   gap: 20px;
+  margin-bottom: 24px;
 }
 
 .header-top {

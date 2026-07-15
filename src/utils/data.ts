@@ -166,39 +166,6 @@ export function formatDate(dateStr: string) {
   })
 }
 
-// Add these imports at the top of your file
-import { getUserById } from './user-utils' // Adjust import path as needed
-import { rooms } from './room-config' // Adjust import path as needed
-
-// Define missing types
-interface Meeting {
-  participants?: MeetingParticipant[]
-  roomId?: string
-  venue?: string
-}
-
-interface MeetingParticipant {
-  userId: string
-  role?: string
-  group?: string
-}
-
-interface EnrichedParticipant extends MeetingParticipant {
-  user?: {
-    firstName: string
-    lastName: string
-    organization?: string
-  }
-  fullName: string
-}
-
-interface RoomSeat {
-  id: string
-  seat_number: string
-  row_number: number
-  column_number: number
-  seat_type: 'head_table' | 'side_row' | 'audience'
-}
 
 // ───────────────────────────────────────────────────────────────────────
 // Existing helper functions

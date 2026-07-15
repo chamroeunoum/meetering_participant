@@ -212,8 +212,8 @@ function handleImageError(event: Event) {
 
 <style scoped>
 .service-page {
-  max-width: 1240px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
   padding: 8px 24px 48px;
 }
 
@@ -422,6 +422,7 @@ function handleImageError(event: Event) {
 
 .participant-table {
   width: 100%;
+  min-width: 0;
   border-collapse: collapse;
   color: var(--color-text);
   font-size: 14px;

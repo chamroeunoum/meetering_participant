@@ -305,7 +305,7 @@ function goToMeeting(id: string) {
 
 <style scoped>
 
-.service-page { max-width: 1200px; margin: 0 auto; padding: 8px 24px 48px; }
+.service-page { width: 100%; padding: 8px 24px 48px; }
 .service-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 0 20px; border-bottom: 1px solid var(--color-border-soft); margin-bottom: 24px; }
 .back-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 14px; font-weight: 600; color: var(--color-primary); background: rgba(255,255,255,0.8); border: 1px solid var(--color-border); border-radius: 10px; cursor: pointer; transition: all var(--transition); }
 .back-btn:hover { background: #fff; border-color: var(--color-primary); }
