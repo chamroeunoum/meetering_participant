@@ -22,7 +22,7 @@ const router = createRouter({
     {
       path: '/viewer-calendar',
       name: 'viewer-calendar',
-      component: () => import('@/views/ViewerCalendar.vue'),
+      component: () => import('@/components/calendar/ViewerCalendar.vue'),
     },
     {
       path: '/attendance',
@@ -33,6 +33,11 @@ const router = createRouter({
       path: '/guide',
       name: 'guide',
       component: () => import('@/views/GuideParticipant.vue'),
+    },
+    {
+      path: '/draft/:meeting_id/:draft_id',
+      name: 'DraftViewer',
+      component: () => import('@/views/DraftViewer.vue'),
     },
   ],
 })

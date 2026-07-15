@@ -268,4 +268,36 @@ button { cursor: pointer; }
   .clock-date { display: none; }
   .visitor-info { display: none; }
 }
+
+.page-content {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: 20px 24px 40px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.card-title {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--color-text);
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.empty-state {
+  padding: 32px 16px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
 </style>

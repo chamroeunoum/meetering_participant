@@ -9,6 +9,65 @@
     "roomId": "r1",
     "coordinatorId": "u1",
     "attendeeIds": ["u1", "u2", "u3", "u4", "u6"],
+    "objective": "ពិនិត្យលទ្ធផលការផ្លាស់ប្តូរឌីជីថល ត្រីមាសទី៤ និងអនុម័តទិសដៅឆ្នាំ២០២៦",
+    "type": { "id": 1, "name": "កិច្ចប្រជុំយុទ្ធសាស្ត្រ" },
+    "route": "ជាន់ទី៦ អគារការិយាល័យ ត្រង់ចេញពីជណ្តើរយន្ត បត់ស្តាំ ដើរត្រង់ដល់ចុងផ្លូវ បន្ទប់ប្រជុំធំស្ថិតនៅខាងឆ្វេង។",
+    "participants": [
+      { "id": "p1", "userId": "u1", "role": "leader", "group": "lead_meeting" },
+      { "id": "p2", "userId": "u4", "role": "deputy_leader", "group": "lead_meeting" },
+      { "id": "p3", "userId": "u3", "role": "member", "group": "audient" },
+      { "id": "p4", "userId": "u8", "role": "member", "group": "audient" },
+      { "id": "p5", "userId": "u2", "role": "member", "group": "defender" },
+      { "id": "p6", "userId": "u6", "role": "member", "group": "defender" },
+      { "id": "p7", "userId": "u7", "role": "member", "group": "audient" },
+      { "id": "p8", "userId": "u5", "role": "member", "group": "audient" }
+    ],
+    "seatAssignments": { "r1-ht-1": "p1", "r1-ht-2": "p2" },
+    "docSections": {
+      "ministerPreeng": [
+        { "id": "mp1", "name": "លិខិតអនុញ្ញាតរដ្ឋមន្ត្រី.pdf", "url": "/docs/meeting-doc-01.pdf" },
+        { "id": "mp2", "name": "សេចក្តីណែនាំរដ្ឋមន្ត្រី.pdf", "url": "/docs/meeting-doc-02.pdf" }
+      ],
+      "seichdeyPreeng": [
+        { "id": "sp1", "name": "សេចក្តីព្រាងសម្រាប់ពិភាក្សា.pdf", "url": "/docs/meeting-doc-03.pdf" }
+      ],
+      "techReports": [
+        { "id": "tr1", "name": "របាយការណ៍បច្ចេកទេស_១.pdf", "url": "/docs/meeting-doc-04.pdf" },
+        { "id": "tr2", "name": "របាយការណ៍បច្ចេកទេស_២.pdf", "url": "/docs/meeting-doc-05.pdf" }
+      ],
+      "reports": [
+        { "id": "rp1", "name": "របាយការណ៍សង្ខេបលទ្ធផល.pdf", "url": "/docs/meeting-doc-06.pdf" },
+        { "id": "rp2", "name": "របាយការណ៍ហិរញ្ញវត្ថុ.pdf", "url": "/docs/meeting-doc-07.pdf" }
+      ],
+      "otherDocuments": [
+        { "id": "od1", "name": "ឯកសារភ្ជាប់ផ្សេងៗ.pdf", "url": "/docs/meeting-doc-08.pdf" }
+      ]
+    },
+    "checklist": {
+      "pre": [
+        { "id": "m1-pre-1", "item_name": "ម៉ាស៊ីនពង្រីកសំឡេង", "equipment_status": "working", "is_checked": true, "checked_at": "08:30" },
+        { "id": "m1-pre-2", "item_name": "ម៉ាស៊ីនបញ្ចាំង LCD", "equipment_status": "working", "is_checked": true, "checked_at": "08:32" },
+        { "id": "m1-pre-3", "item_name": "ម៉ាស៊ីនត្រជាក់", "equipment_status": "working", "is_checked": true, "checked_at": "08:35" },
+        { "id": "m1-pre-4", "item_name": "ចង្កៀងបន្ទប់", "equipment_status": "working", "is_checked": false, "checked_at": null },
+        { "id": "m1-pre-5", "item_name": "ទឹកផឹក និងកែវ", "equipment_status": "working", "is_checked": false, "checked_at": null },
+        { "id": "m1-pre-6", "item_name": "ស្លាកឈ្មោះតុប្រជុំ", "equipment_status": "failed", "is_checked": false, "checked_at": null }
+      ],
+      "post": [
+        { "id": "m1-post-1", "item_name": "ម៉ាស៊ីនពង្រីកសំឡេង", "equipment_status": "working", "is_checked": false, "checked_at": null },
+        { "id": "m1-post-2", "item_name": "ម៉ាស៊ីនបញ្ចាំង LCD", "equipment_status": "working", "is_checked": false, "checked_at": null },
+        { "id": "m1-post-3", "item_name": "សម្អាតបន្ទប់ប្រជុំ", "equipment_status": "working", "is_checked": false, "checked_at": null },
+        { "id": "m1-post-4", "item_name": "ប្រមូលឯកសារនៅសល់", "equipment_status": "working", "is_checked": false, "checked_at": null }
+      ]
+    },
+    "legalDraft": {
+      "id": "ld1",
+      "title": "សេចក្តីព្រាងសេចក្តីសម្រេចស្តីពីទិសដៅឌីជីថល ត្រីមាសទី៤",
+      "status": "progressing",
+      "version_number": 3,
+      "regulator": "អគ្គលេខាធិការដ្ឋានទីស្ដីការគណៈរដ្ឋមន្ត្រី",
+      "pdf_url": "/docs/meeting-doc-11.pdf",
+      "docx_url": ""
+    },
     "meetingLink": "https://meet.company.com/q2-strategy",
     "meetingCode": "Q2S-2026-001",
     "status": "scheduled",
@@ -38,11 +97,11 @@
       { "id": "uploaded-pdf-14", "name": "របាយការណ៍សិក្សានិងធ្វើបច្ចុប្បន្នភាពលើគម្រោងប្រព័ន្ធកិច្ចប្រជុំ.pdf", "type": "document", "category": "Reference", "url": "/docs/meeting-doc-14.pdf", "size": 533805, "status": "Available" }
     ],
     "agenda": [
-      { "id": "a1", "title": "Opening Remarks", "description": "Welcome and objectives", "startTime": "09:00", "endTime": "09:15", "presenterId": "u1", "duration": 15, "session": "morning" },
-      { "id": "a2", "title": "Q1 Performance Review", "description": "Review of Q1 KPIs and metrics", "startTime": "09:15", "endTime": "10:00", "presenterId": "u3", "duration": 45, "session": "morning" },
-      { "id": "a3", "title": "Market Analysis", "description": "Competitive landscape update", "startTime": "10:00", "endTime": "10:30", "presenterId": "u8", "duration": 30, "session": "morning" },
-      { "id": "a4", "title": "Lunch Break", "description": "Networking lunch", "startTime": "12:00", "endTime": "13:00", "presenterId": null, "duration": 60, "session": "afternoon" },
-      { "id": "a5", "title": "Action Items & Next Steps", "description": "Define action items and owners", "startTime": "13:00", "endTime": "13:30", "presenterId": "u1", "duration": 30, "session": "afternoon" }
+      { "id": "a1", "topic": "សុន្ទរកថាស្វាគមន៍ និងគោលបំណងកិច្ចប្រជុំ", "start_time": "09:00", "duration": 15, "handlerIds": ["p1"] },
+      { "id": "a2", "topic": "ពិនិត្យលទ្ធផលត្រីមាសទី១", "start_time": "09:15", "duration": 45, "handlerIds": ["p3"] },
+      { "id": "a3", "topic": "វិភាគទីផ្សារ និងភាពប្រកួតប្រជែង", "start_time": "10:00", "duration": 30, "handlerIds": ["p4"] },
+      { "id": "a4", "topic": "សម្រាកអាហារថ្ងៃត្រង់", "start_time": "12:00", "duration": 60, "handlerIds": [] },
+      { "id": "a5", "topic": "ការងារត្រូវធ្វើ និងជំហានបន្ទាប់", "start_time": "13:00", "duration": 30, "handlerIds": ["p1"] }
     ],
     "survey": {
       "title": "Q2 Strategy Meeting Feedback",
@@ -72,6 +131,18 @@
     "roomId": "r2",
     "coordinatorId": "u2",
     "attendeeIds": ["u2", "u6", "u7"],
+    "objective": "Product Sprint Planning",
+    "type": { "id": 2, "name": "Development" },
+    "route": "",
+    "participants": [
+      { "id": "p2-1", "userId": "u2", "role": "leader", "group": "lead_meeting" },
+      { "id": "p2-2", "userId": "u6", "role": "member", "group": "audient" },
+      { "id": "p2-3", "userId": "u7", "role": "member", "group": "audient" }
+    ],
+    "seatAssignments": {},
+    "docSections": { "ministerPreeng": [], "seichdeyPreeng": [], "techReports": [], "reports": [], "otherDocuments": [] },
+    "checklist": { "pre": [], "post": [] },
+    "legalDraft": null,
     "meetingLink": "https://meet.company.com/sprint-planning",
     "meetingCode": "SPR-2026-014",
     "status": "scheduled",
@@ -84,8 +155,8 @@
     "notes": "",
     "documents": [],
     "agenda": [
-      { "id": "a6", "title": "Sprint Goals", "description": "Define sprint objectives", "time": "14:00", "presenterId": "u2", "duration": 30, "session": "afternoon" },
-      { "id": "a7", "title": "Story Estimation", "description": "Estimate user stories", "time": "14:30", "presenterId": "u6", "duration": 60, "session": "afternoon" }
+      { "id": "a6", "topic": "Sprint Goals", "start_time": "14:00", "duration": 30, "handlerIds": ["p2-1"] },
+      { "id": "a7", "topic": "Story Estimation", "start_time": "14:30", "duration": 60, "handlerIds": ["p2-2"] }
     ],
     "survey": { "title": "Sprint Planning Feedback", "questions": [], "totalResponses": 0 },
     "analytics": { "attendanceRate": 100, "duration": 120, "agendaCompletion": 0, "engagementScore": 0, "categoryBreakdown": {}, "timeDistribution": {} }
@@ -100,6 +171,19 @@
     "roomId": "r1",
     "coordinatorId": "u4",
     "attendeeIds": ["u1", "u3", "u4", "u5"],
+    "objective": "Board of Directors Meeting",
+    "type": { "id": 3, "name": "Governance" },
+    "route": "",
+    "participants": [
+      { "id": "p3-1", "userId": "u4", "role": "leader", "group": "lead_meeting" },
+      { "id": "p3-2", "userId": "u1", "role": "member", "group": "audient" },
+      { "id": "p3-3", "userId": "u3", "role": "member", "group": "audient" },
+      { "id": "p3-4", "userId": "u5", "role": "member", "group": "audient" }
+    ],
+    "seatAssignments": {},
+    "docSections": { "ministerPreeng": [], "seichdeyPreeng": [], "techReports": [], "reports": [], "otherDocuments": [] },
+    "checklist": { "pre": [], "post": [] },
+    "legalDraft": null,
     "meetingLink": "https://meet.company.com/board-meeting",
     "meetingCode": "BOD-2026-003",
     "status": "scheduled",
@@ -125,6 +209,18 @@
     "roomId": "r3",
     "coordinatorId": "u2",
     "attendeeIds": ["u2", "u6", "u7"],
+    "objective": "Weekly Team Standup",
+    "type": { "id": 4, "name": "Operations" },
+    "route": "",
+    "participants": [
+      { "id": "p4-1", "userId": "u2", "role": "leader", "group": "lead_meeting" },
+      { "id": "p4-2", "userId": "u6", "role": "member", "group": "audient" },
+      { "id": "p4-3", "userId": "u7", "role": "member", "group": "audient" }
+    ],
+    "seatAssignments": {},
+    "docSections": { "ministerPreeng": [], "seichdeyPreeng": [], "techReports": [], "reports": [], "otherDocuments": [] },
+    "checklist": { "pre": [], "post": [] },
+    "legalDraft": null,
     "meetingLink": "https://meet.company.com/standup",
     "meetingCode": "STD-2026-028",
     "status": "completed",
@@ -145,6 +241,18 @@
     "roomId": "r3",
     "coordinatorId": "u8",
     "attendeeIds": ["u8", "u1", "u2"],
+    "objective": "Client Presentation",
+    "type": { "id": 5, "name": "Sales" },
+    "route": "",
+    "participants": [
+      { "id": "p5-1", "userId": "u8", "role": "leader", "group": "lead_meeting" },
+      { "id": "p5-2", "userId": "u1", "role": "member", "group": "audient" },
+      { "id": "p5-3", "userId": "u2", "role": "member", "group": "audient" }
+    ],
+    "seatAssignments": {},
+    "docSections": { "ministerPreeng": [], "seichdeyPreeng": [], "techReports": [], "reports": [], "otherDocuments": [] },
+    "checklist": { "pre": [], "post": [] },
+    "legalDraft": null,
     "meetingLink": "https://meet.company.com/client-demo",
     "meetingCode": "CLT-2026-007",
     "status": "completed",
@@ -165,6 +273,22 @@
     "roomId": "r4",
     "coordinatorId": "u4",
     "attendeeIds": ["u4", "u1", "u2", "u5", "u6", "u7", "u8"],
+    "objective": "HR Policy Update",
+    "type": { "id": 6, "name": "HR" },
+    "route": "",
+    "participants": [
+      { "id": "p6-1", "userId": "u4", "role": "leader", "group": "lead_meeting" },
+      { "id": "p6-2", "userId": "u1", "role": "member", "group": "audient" },
+      { "id": "p6-3", "userId": "u2", "role": "member", "group": "audient" },
+      { "id": "p6-4", "userId": "u5", "role": "member", "group": "audient" },
+      { "id": "p6-5", "userId": "u6", "role": "member", "group": "audient" },
+      { "id": "p6-6", "userId": "u7", "role": "member", "group": "audient" },
+      { "id": "p6-7", "userId": "u8", "role": "member", "group": "audient" }
+    ],
+    "seatAssignments": {},
+    "docSections": { "ministerPreeng": [], "seichdeyPreeng": [], "techReports": [], "reports": [], "otherDocuments": [] },
+    "checklist": { "pre": [], "post": [] },
+    "legalDraft": null,
     "meetingLink": "https://meet.company.com/hr-update",
     "meetingCode": "HR-2026-012",
     "status": "completed",
