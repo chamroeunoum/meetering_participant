@@ -7,6 +7,10 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      redirect: '/portal',
+    },
+    {
+      path: '/portal',
       name: 'portal',
       component: PortalPage,
     },
@@ -26,16 +30,6 @@ const router = createRouter({
       component: () => import('@/views/Attendance.vue'),
     },
     {
-      path: '/writer',
-      name: 'writer',
-      component: () => import('@/views/Writer.vue'),
-    },
-    {
-      path: '/administrator',
-      name: 'administrator',
-      component: () => import('@/views/Administrator.vue'),
-    },
-    {
       path: '/guide',
       name: 'guide',
       component: () => import('@/views/GuideParticipant.vue'),
@@ -45,7 +39,6 @@ const router = createRouter({
 
 router.beforeEach((to, from) => {
   const portalStore = usePortalStore()
-  // If user hasn't entered an access code and isn't going to the portal page, redirect to /
   if (!portalStore.hasAccess && to.name !== 'portal') {
     return { name: 'portal' }
   }

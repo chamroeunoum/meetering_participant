@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { Calendar, Settings } from 'lucide-vue-next'
+import { ArrowRight, BookOpen, Calendar, QrCode, ShieldCheck } from 'lucide-vue-next'
 import type { LucideIcon } from 'lucide-vue-next'
-import PortalCard from '@/components/PortalCard.vue'
-import { portalSections, portals } from '@/data/portals'
+import { portals } from '@/data/portals'
 import { useRouter } from 'vue-router'
 import { usePortalStore } from '@/stores/portal'
 
 const router = useRouter()
 const portalStore = usePortalStore()
 
-const sectionIcons: Record<string, LucideIcon> = {
+const iconMap: Record<string, LucideIcon> = {
+  qrCode: QrCode,
   calendar: Calendar,
-  settings: Settings,
+  shieldCheck: ShieldCheck,
+  bookOpen: BookOpen,
 }
 
 function openPortal(portalId: string) {
@@ -22,271 +23,234 @@ function openPortal(portalId: string) {
 
 <template>
   <main class="portal-page">
-    <header class="portal-header">
-      <div class="portal-hero-copy">
-        <div class="portal-hero-label">
-          <img class="portal-hero-logo" src="/assets/ocm-logo.svg" alt="" aria-hidden="true" />
-          <div>
-            <p class="page-eyebrow">ទីស្ដីការគណៈរដ្ឋមន្ត្រី</p>
-            <p class="portal-hero-subtitle">Office of the Council of Ministers</p>
-          </div>
-        </div>
-        <h1>ប្រព័ន្ធគ្រប់គ្រងកិច្ចប្រជុំ</h1>
-        <div class="portal-hero-divider" aria-hidden="true">
-          <span />
-          <strong>✦</strong>
-          <span />
-        </div>
-      </div>
-      <div class="portal-hero-art">
-        <img
-          class="portal-hero-building"
-          src="/assets/ocm-building-hero.png"
-          alt=""
-          aria-hidden="true"
-        />
-      </div>
+    <!-- Logo header -->
+    <header class="portal-top-header">
+      <img class="portal-main-logo" src="/assets/ocm-logo.svg" alt="ទីស្ដីការគណៈរដ្ឋមន្ត្រី" />
     </header>
 
-    <div class="portal-sections">
-      <section
-        v-for="section in portalSections"
-        :key="section.id"
-        class="portal-section"
-        :aria-labelledby="`${section.id}-title`"
+    <!-- Title -->
+    <div class="page-title-wrap">
+      <div class="page-emblem">✦</div>
+      <h1 class="page-title">ប្រព័ន្ធគ្រប់គ្រងកិច្ចប្រជុំ</h1>
+      <p class="page-subtitle">ផ្ទាំងសេវាកម្មសម្រាប់អ្នកចូលរួម</p>
+    </div>
+
+    <!-- Service list -->
+    <div class="service-list">
+      <button
+        v-for="portal in portals"
+        :key="portal.id"
+        class="service-item"
+        type="button"
+        @click="openPortal(portal.id)"
       >
-        <div class="portal-section-header">
-          <span class="portal-section-icon" aria-hidden="true">
-            <component :is="sectionIcons[section.icon] || Calendar" :size="22" :stroke-width="2.2" />
-          </span>
-          <h2 :id="`${section.id}-title`">{{ section.title }}</h2>
-        </div>
-        <div class="portal-grid">
-          <PortalCard
-            v-for="portal in portals.filter((p) => p.section === section.id)"
-            :key="portal.id"
-            :portal="portal"
-            @open="openPortal"
-          />
-        </div>
-      </section>
+        <span class="service-icon" aria-hidden="true">
+          <component :is="iconMap[portal.icon]" :size="24" :stroke-width="2" />
+        </span>
+        <span class="service-info">
+          <strong class="service-name">{{ portal.title }}</strong>
+          <span class="service-desc">{{ portal.description }}</span>
+        </span>
+        <span class="service-arrow">
+          <ArrowRight :size="18" :stroke-width="2.5" />
+        </span>
+      </button>
     </div>
   </main>
 </template>
 
 <style scoped>
+/* ===== Layout ===== */
 .portal-page {
-  width: min(1440px, 100%);
+  width: min(800px, 100%);
   min-height: 100vh;
   margin: 0 auto;
-  padding: 20px 32px;
+  padding: 8px 24px 48px;
 }
 
-.portal-header {
-  position: relative;
+/* ===== Top Header ===== */
+.portal-top-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  min-height: 220px;
-  gap: 32px;
-  margin-bottom: 24px;
-  padding: 28px 40px 32px 0;
-  overflow: hidden;
-  background: #ffffff;
-  border: 1px solid var(--color-border-soft);
-  border-radius: 22px;
-  box-shadow: var(--shadow-md);
+  justify-content: center;
+  padding: 32px 0 20px;
 }
 
-.portal-hero-copy {
-  position: relative;
-  z-index: 1;
-  max-width: 760px;
-  margin-left: 30px;
-}
-
-.portal-hero-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 18px;
-  margin-bottom: 28px;
-}
-
-.portal-hero-logo {
-  display: block;
-  width: 72px;
-  height: 72px;
+.portal-main-logo {
+  width: 130px;
+  height: 130px;
   object-fit: contain;
 }
 
-.portal-hero-subtitle {
-  margin: 8px 0 0;
-  color: #D4AF37;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.35;
+/* ===== Page Title ===== */
+.page-title-wrap {
+  text-align: center;
+  margin-bottom: 36px;
 }
 
-.portal-header h1 {
-  max-width: 760px;
+.page-emblem {
+  font-size: 18px;
+  color: var(--color-accent);
+  margin-bottom: 6px;
+  opacity: 0.6;
+}
+
+.page-title {
   margin: 0;
-  color: #1B2142;
   font-family: var(--font-heading);
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: 0;
-  line-height: 1.2;
-  text-shadow: 0 3px 10px rgba(0,0,0,.08);
-}
-
-.portal-hero-divider {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: min(420px, 100%);
-  margin: 18px 0 0;
-  color: #D4AF37;
-}
-
-.portal-hero-divider span {
-  height: 1px;
-  flex: 1;
-  background: #D4AF37;
-}
-
-.portal-hero-divider strong {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  font-size: 16px;
-  line-height: 1;
-}
-
-.portal-hero-art {
-  position: absolute;
-  right: 28px;
-  bottom: -15px;
-  width: 460px;
-  max-width: 38%;
-  opacity: 0.16;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.portal-hero-building {
-  display: block;
-  width: 100%;
-  height: auto;
-  filter: saturate(0.85) brightness(1.2);
-  user-select: none;
-}
-
-.portal-sections {
-  display: grid;
-  gap: 20px;
-}
-
-.portal-section {
-  display: grid;
-  gap: 12px;
-}
-
-.portal-section-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.portal-section-icon {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  color: var(--color-primary);
-  border: 1px solid rgba(13, 98, 213, 0.28);
-  border-radius: 11px;
-}
-
-.portal-section-header h2 {
-  margin: 0;
-  font-family: var(--font-heading);
-  font-size: 20px;
-  font-weight: 400;
   color: var(--color-text);
+  line-height: 1.3;
 }
 
-.portal-section-header::after {
+.page-title::after {
   content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--color-border);
+  display: block;
+  width: 50px;
+  height: 3px;
+  margin: 14px auto 0;
+  background: linear-gradient(90deg, var(--color-accent), rgba(212, 175, 55, 0.2));
+  border-radius: 2px;
 }
 
-.portal-grid {
+.page-subtitle {
+  margin: 12px 0 0;
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* ===== Service List ===== */
+.service-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 12px;
+  padding-bottom: 48px;
 }
 
-@media (max-width: 900px) {
-  .portal-header {
-    min-height: 210px;
-    padding: 26px 32px 30px 0;
-  }
-
-  .portal-hero-art {
-    max-width: 48%;
-    opacity: 0.14;
-  }
-
-  .portal-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .portal-header h1 {
-    font-size: 20px;
-  }
+.service-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(232, 238, 245, 0.7);
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text);
+  transition: all var(--transition);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
+.service-item:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 16px rgba(13, 98, 213, 0.1);
+  transform: translateY(-2px);
+}
+
+.service-item:active {
+  transform: translateY(0);
+}
+
+.service-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  color: var(--color-primary);
+  background: rgba(13, 98, 213, 0.08);
+  border-radius: 12px;
+  transition: all var(--transition);
+}
+
+.service-item:hover .service-icon {
+  color: #ffffff;
+  background: var(--color-primary);
+}
+
+.service-info {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.service-name {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.service-desc {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.service-arrow {
+  flex-shrink: 0;
+  color: var(--color-accent);
+  transition: all var(--transition);
+}
+
+.service-item:hover .service-arrow {
+  color: var(--color-primary);
+  transform: translateX(3px);
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 640px) {
+  .page-title { font-size: 24px; }
+  .page-subtitle { font-size: 14px; }
   .portal-page {
-    padding: 24px 16px 40px;
+    padding: 8px 16px 0;
   }
 
-  .portal-header {
-    min-height: 190px;
-    padding: 24px 20px 28px 0;
+  .portal-top-header {
+    padding: 24px 0 16px;
   }
 
-  .portal-hero-label {
-    gap: 14px;
-    margin-bottom: 22px;
+  .portal-main-logo {
+    width: 100px;
+    height: 100px;
   }
 
-  .portal-hero-logo {
-    width: 60px;
-    height: 60px;
+  .page-title-wrap {
+    margin-bottom: 28px;
   }
 
-  .portal-hero-subtitle {
-    font-size: 16px;
+  .page-title {
+    font-size: 22px;
   }
 
-  .portal-header h1 {
-    font-size: 20px;
+  .service-item {
+    padding: 14px 16px;
+    gap: 12px;
   }
 
-  .portal-hero-copy {
-    margin-left: 16px;
+  .service-icon {
+    width: 40px;
+    height: 40px;
   }
 
-  .portal-hero-art {
-    display: none;
+  .service-name {
+    font-size: 15px;
   }
 
-  .portal-grid {
-    grid-template-columns: 1fr;
+  .service-desc {
+    font-size: 13px;
   }
+
+
 }
 </style>

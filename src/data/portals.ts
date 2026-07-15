@@ -19,11 +19,6 @@ export const portalSections: PortalSection[] = [
     title: 'កិច្ចប្រជុំ',
     icon: 'calendar',
   },
-  {
-    id: 'management',
-    title: 'ការគ្រប់គ្រង',
-    icon: 'settings',
-  },
 ]
 
 export const portals: Portal[] = [
@@ -52,27 +47,11 @@ export const portals: Portal[] = [
     section: 'meetings',
   },
   {
-    id: 'writer',
-    title: 'អ្នកសរសេរ',
-    description: 'គ្រប់គ្រងកំណត់ត្រា ការប្រជុំ និងឯកសារ',
-    label: 'Writer',
-    icon: 'penSquare',
-    section: 'management',
-  },
-  {
-    id: 'administrator',
-    title: 'អ្នកគ្រប់គ្រងប្រព័ន្ធ',
-    description: 'គ្រប់គ្រងអ្នកប្រើប្រាស់ សិទ្ធិ និងការកំណត់ផ្សេងៗ',
-    label: 'Administrator',
-    icon: 'userCog',
-    section: 'management',
-  },
-  {
     id: 'guide',
-    title: 'មគ្គុទេសក៍អ្នកចូលរួម',
-    description: 'មើលរបៀបប្រើប្រាស់ និងជំនួយសម្រាប់អ្នកចូលរួម',
+    title: 'មគ្គុទេសក៍ទីតាំង',
+    description: 'មើលផ្លូវ និងទីតាំងបន្ទប់ប្រជុំ',
     label: 'Guide Participant',
     icon: 'bookOpen',
-    section: 'management',
+    section: 'meetings',
   },
 ]
