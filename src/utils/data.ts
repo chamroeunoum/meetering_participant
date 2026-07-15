@@ -132,12 +132,13 @@ export function getUsers(): User[] {
   return users
 }
 
-export function getUserById(id: string): User | undefined {
+
+export function getUserById(id: string) {
   return users.find((user) => user.id === id)
 }
 
-export function getUserName(user?: User | null): string {
-  if (!user) return 'មិនស្គាល់'
+export function getUserName(user: any) {
+  if (!user) return 'Unknown'
   return `${user.courtesy} ${user.firstName} ${user.lastName}`
 }
 
@@ -145,15 +146,17 @@ export function getMeetings(): Meeting[] {
   return meetings
 }
 
-export function getMeetingById(id: string): Meeting | undefined {
+
+export function getMeetingById(id: string) {
   return meetings.find((meeting) => meeting.id === id)
 }
 
 export function getActivityLogs(meetingId: string) {
-  return activityLogs[meetingId] || []
+
+  return (activityLogs as Record<string, unknown[]>)[meetingId] || []
 }
 
-export function formatDate(dateStr: string): string {
+export function formatDate(dateStr: string) {
   const date = new Date(`${dateStr}T00:00:00`)
   return date.toLocaleDateString('en-US', {
     weekday: 'short',
@@ -163,21 +166,58 @@ export function formatDate(dateStr: string): string {
   })
 }
 
+// Add these imports at the top of your file
+import { getUserById } from './user-utils' // Adjust import path as needed
+import { rooms } from './room-config' // Adjust import path as needed
+
+// Define missing types
+interface Meeting {
+  participants?: MeetingParticipant[]
+  roomId?: string
+  venue?: string
+}
+
+interface MeetingParticipant {
+  userId: string
+  role?: string
+  group?: string
+}
+
+interface EnrichedParticipant extends MeetingParticipant {
+  user?: {
+    firstName: string
+    lastName: string
+    organization?: string
+  }
+  fullName: string
+}
+
+interface RoomSeat {
+  id: string
+  seat_number: string
+  row_number: number
+  column_number: number
+  seat_type: 'head_table' | 'side_row' | 'audience'
+}
+
+// ───────────────────────────────────────────────────────────────────────
+// Existing helper functions
+// ───────────────────────────────────────────────────────────────────────
+
 export function formatTimeRange(start: string, end: string): string {
   return `${start} - ${end}`
 }
 
-const STATUS_BADGES: Record<string, string> = {
-  scheduled: 'badge-info',
-  completed: 'badge-success',
-  pending: 'badge-warning',
-  processing: 'badge-warning',
-  archived: 'badge-neutral',
-  cancelled: 'badge-danger',
-}
-
-export function getStatusBadge(status: string): string {
-  return STATUS_BADGES[status] || 'badge-neutral'
+export function getStatusBadge(status: string) {
+  const map = {
+    scheduled: 'badge-info',
+    completed: 'badge-success',
+    pending: 'badge-warning',
+    processing: 'badge-warning',
+    archived: 'badge-neutral',
+    cancelled: 'badge-danger',
+  }
+  return (map as Record<string, string>)[status] || 'badge-neutral'
 }
 
 const FILE_TYPE_ICONS: Record<string, string> = {
@@ -185,10 +225,6 @@ const FILE_TYPE_ICONS: Record<string, string> = {
   video: 'VID',
   spreadsheet: 'XLS',
   other: 'FILE',
-}
-
-export function getFileTypeIcon(type: string): string {
-  return FILE_TYPE_ICONS[type] || 'FILE'
 }
 
 // ───────────────────────────────────────────────────────────────────────
@@ -245,6 +281,7 @@ export function formatDuration(minutes: number): string {
   return `${r} នាទី`
 }
 
+// Fixed: Added missing closing brace and removed duplicate function
 export function getRoomSeats(roomId: string): RoomSeat[] {
   const config = rooms.find((r) => r.id === roomId)
   if (!config) return []
@@ -252,19 +289,41 @@ export function getRoomSeats(roomId: string): RoomSeat[] {
   let n = 0
   for (let c = 1; c <= config.headTableSeats; c++) {
     n++
-    seats.push({ id: `${roomId}-ht-${c}`, seat_number: String(n), row_number: 1, column_number: c, seat_type: 'head_table' })
+    seats.push({ 
+      id: `${roomId}-ht-${c}`, 
+      seat_number: String(n), 
+      row_number: 1, 
+      column_number: c, 
+      seat_type: 'head_table' 
+    })
   }
   for (let r = 1; r <= config.sideRows; r++) {
     for (let c = 1; c <= config.sideCols; c++) {
       n++
-      seats.push({ id: `${roomId}-sr-${r}-${c}`, seat_number: String(n), row_number: r + 1, column_number: c, seat_type: 'side_row' })
+      seats.push({ 
+        id: `${roomId}-sr-${r}-${c}`, 
+        seat_number: String(n), 
+        row_number: r + 1, 
+        column_number: c, 
+        seat_type: 'side_row' 
+      })
     }
   }
   for (let r = 1; r <= config.audienceRows; r++) {
     for (let c = 1; c <= config.audienceCols; c++) {
       n++
-      seats.push({ id: `${roomId}-aud-${r}-${c}`, seat_number: String(n), row_number: r, column_number: c, seat_type: 'audience' })
+      seats.push({ 
+        id: `${roomId}-aud-${r}-${c}`, 
+        seat_number: String(n), 
+        row_number: r, 
+        column_number: c, 
+        seat_type: 'audience' 
+      })
     }
   }
-  return seats
+  return seats 
+} 
+
+export function getFileTypeIcon(type: string) {
+  return FILE_TYPE_ICONS[type] || 'FILE'
 }

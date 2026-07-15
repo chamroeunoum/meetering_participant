@@ -56,6 +56,14 @@ const tabs = [
 type TabKey = (typeof tabs)[number]['key']
 const activeTab = ref<TabKey>('agenda')
 
+function getAgendaStart(item: any) {
+  return item.startTime || item.time
+}
+
+function getAgendaEnd(item: any) {
+  return item.endTime || '-'
+}
+
 function goBack() {
   portalStore.clearActivePortal()
   router.push('/')
@@ -123,7 +131,69 @@ function goBack() {
                     </button>
                   </div>
                 </div>
+                <div class="progress-legend" aria-label="ស្ថានភាពរបៀបវារៈ">
+                  <span><i class="legend-dot complete" />បានបញ្ចប់</span>
+                  <span><i class="legend-dot pending" />កំពុងរង់ចាំ</span>
+                  <span><i class="legend-dot not-yet" />មិនទាន់ដល់</span>
+                </div>
               </div>
+              <div class="card-body agenda-sessions">
+                <section v-for="session in ['morning', 'afternoon']" :key="session" class="session-block">
+                  <div class="session-title">{{ session === 'morning' ? 'វគ្គព្រឹក' : 'វគ្គរសៀល' }}</div>
+                  <div v-if="!(meeting.agenda || []).filter((i: any) => i.session === session).length" class="empty-state compact">មិនមានធាតុ</div>
+                  <div v-else class="agenda-table">
+                    <div class="agenda-header-row">
+                      <span /><span>ម៉ោង</span><span>ចំណងជើង និងពិពណ៌នា</span>
+                    </div>
+                    <div
+                      v-for="(item, index) in (meeting.agenda || []).filter((i: any) => i.session === session)"
+                      :key="item.id"
+                      :class="['agenda-row', `progress-${getAgendaProgressStatus(item, index)}`, { last: index === (meeting.agenda || []).filter((i: any) => i.session === session).length - 1 }]"
+                    >
+                      <div class="agenda-timeline">
+                        <div class="timeline-node" />
+                        <div v-if="index < (meeting.agenda || []).filter((i: any) => i.session === session).length - 1" class="timeline-line" />
+                      </div>
+                      <div class="agenda-time-col">
+                        <div>{{ getAgendaStart(item) }}</div>
+                        <div class="time-end">{{ getAgendaEnd(item) }}</div>
+                      </div>
+                      <div class="agenda-content-col">
+                        <div class="agenda-title">{{ getDisplayAgendaItem(item).title }}</div>
+                        <div class="agenda-desc">{{ getDisplayAgendaItem(item).description }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            <!-- Participant/Seating Layout Panel -->
+            <div v-if="activeTab === 'participants'" class="card">
+              <div class="card-header">
+                <div class="agenda-title-bar">
+                  <div class="agenda-title-tabs" role="tablist" aria-label="ព័ត៌មានកិច្ចប្រជុំ">
+                    <button
+                      v-for="tab in tabs"
+                      :key="tab.key"
+                      :class="['tab', 'agenda-title-tab', { active: activeTab === tab.key }]"
+                      type="button"
+                      role="tab"
+                      :aria-selected="activeTab === tab.key"
+                      @click="activeTab = tab.key"
+                    >
+                      {{ tab.label }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <!-- Your participants/seating content goes here -->
+              <div class="card-body">
+                <!-- Add your seating layout content here -->
+              </div>
+            </div>
+          </div>
+        </div>
               <div class="card-body">
                 <AgendaTab v-if="activeTab === 'agenda'" :meeting="meeting" />
                 <MemberListTab v-else-if="activeTab === 'members'" :meeting="meeting" />
