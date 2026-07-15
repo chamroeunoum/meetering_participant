@@ -1,0 +1,6 @@
+[
+  { "id": "r1", "headTableSeats": 4, "sideRows": 2, "sideCols": 4, "audienceRows": 3, "audienceCols": 4 },
+  { "id": "r2", "headTableSeats": 2, "sideRows": 1, "sideCols": 4, "audienceRows": 2, "audienceCols": 4 },
+  { "id": "r3", "headTableSeats": 2, "sideRows": 1, "sideCols": 2, "audienceRows": 1, "audienceCols": 4 },
+  { "id": "r4", "headTableSeats": 2, "sideRows": 2, "sideCols": 4, "audienceRows": 3, "audienceCols": 5 }
+]

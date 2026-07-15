@@ -40,6 +40,11 @@ const router = createRouter({
       name: 'guide',
       component: () => import('@/views/GuideParticipant.vue'),
     },
+    {
+      path: '/draft/:meeting_id/:draft_id',
+      name: 'DraftViewer',
+      component: () => import('@/views/DraftViewer.vue'),
+    },
   ],
 })
 
