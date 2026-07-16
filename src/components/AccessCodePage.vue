@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { usePortalStore } from '@/stores/portal'
 import { isValidPortalCode, sendOtp, isValidOtp } from '@/data/access'
+import { lookupByCode } from '@/data/participant-codes'
 
+const router = useRouter()
 const portalStore = usePortalStore()
 
 // --- Tab state ---
@@ -14,9 +17,24 @@ const codeError = ref('')
 
 function submitCode(event: Event) {
   event.preventDefault()
-  if (isValidPortalCode(code.value)) {
+  const trimmed = code.value.trim().toUpperCase()
+
+  // Try participant-specific code → redirect to meeting detail
+  const participant = lookupByCode(trimmed)
+  if (participant) {
     codeError.value = ''
-    portalStore.grantAccess(code.value.trim().toUpperCase())
+    portalStore.grantAccess(trimmed)
+    portalStore.setAccessType('meeting-code', participant.meetingId)
+    router.push('/meeting-viewer?id=' + participant.meetingId)
+    return
+  }
+
+  // Fallback to shared portal code → redirect to calendar
+  if (isValidPortalCode(trimmed)) {
+    codeError.value = ''
+    portalStore.grantAccess(trimmed)
+    portalStore.setAccessType('contact')
+    router.push('/viewer-calendar')
   } else {
     codeError.value = 'លេខកូដមិនត្រឹមត្រូវ។ សូមព្យាយាមម្តងទៀត។'
   }
@@ -52,6 +70,8 @@ function submitOtp(event: Event) {
   if (isValidOtp(otpCode.value, expectedOtp.value)) {
     otpError.value = ''
     portalStore.grantAccessByContact(contact.value.trim())
+    portalStore.setAccessType('contact')
+    router.push('/viewer-calendar')
   } else {
     otpError.value = 'លេខកូដផ្ទៀងផ្ទាត់មិនត្រឹមត្រូវ។ សូមព្យាយាមម្តងទៀត។'
   }

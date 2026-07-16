@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Calendar, Clock, FileText, MapPin, Users } from 'lucide-vue-next'
+import { ArrowLeft, Calendar, CheckSquare, Clock, FileText, MapPin, Users } from 'lucide-vue-next'
 import { usePortalStore } from '@/stores/portal'
 import { useMeetingWorkspaceStore } from '@/stores/meetingWorkspace'
 import {
@@ -23,9 +23,26 @@ const route = useRoute()
 const portalStore = usePortalStore()
 const workspace = useMeetingWorkspaceStore()
 
-const meeting = computed(() => getMeetingById('m1'))
+const meetingId = computed(() => (route.query.id as string) || (route.query.meeting as string) || 'm1')
+const meeting = computed(() => getMeetingById(meetingId.value))
 const isFromCalendar = computed(() => route.query.from === 'calendar')
 const ws = computed(() => (meeting.value ? workspace.getWorkspace(meeting.value.id) : null))
+
+const todayStr = computed(() => {
+  const d = new Date()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+})
+const isMeetingToday = computed(() => meeting.value?.date === todayStr.value)
+const isAlreadyCheckedIn = computed(() => portalStore.isCheckedIn(meeting.value?.id || ''))
+
+function handleCheckIn() {
+  const mid = meeting.value?.id
+  if (!mid) return
+  portalStore.setCurrentMeeting(mid, 0)
+  portalStore.markCheckIn(mid)
+}
 
 const STATUS_LABELS: Record<string, string> = {
   scheduled: 'បានកំណត់ពេល',
@@ -78,7 +95,9 @@ function getAgendaEnd(item: any) {
 }
 
 function goBack() {
-  if (isFromCalendar.value) {
+  if (portalStore.accessType === 'meeting-code') {
+    router.push('/')
+  } else if (isFromCalendar.value) {
     router.push('/viewer-calendar')
   } else {
     portalStore.clearActivePortal()
@@ -130,6 +149,21 @@ function goBack() {
             <div v-if="meetingLeaders.length > 0" class="header-leaders">
               <Users :size="15" :stroke-width="2.2" />
               <span>អ្នកដឹកនាំកិច្ចប្រជុំ៖ {{ meetingLeaders.map((l) => l.fullName).join(', ') }}</span>
+            </div>
+
+            <!-- Check-in button -->
+            <div v-if="isMeetingToday" class="checkin-bar">
+              <button
+                v-if="!isAlreadyCheckedIn"
+                class="checkin-btn"
+                type="button"
+                @click="handleCheckIn"
+              >
+                <CheckSquare :size="20" :stroke-width="2.5" /> ចុះឈ្មោះចូលរួម
+              </button>
+              <div v-else class="checkin-done">
+                <CheckSquare :size="20" :stroke-width="2.5" /> បានចុះឈ្មោះចូលរួមហើយ
+              </div>
             </div>
           </div>
         </div>
@@ -192,7 +226,7 @@ function goBack() {
 .header-icon { display: grid; place-items: center; width: 40px; height: 40px; color: var(--color-primary); background: rgba(13,98,213,0.08); border-radius: 10px; }
 .header-title { margin: 0; font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--color-text); }
 .embedded-portal { flex: 1; width: 100%; }
-.page-content { width: 100%; }
+.page-content { width: 100%; padding: 0 24px 24px; }
 .meeting-detail {
   display: grid;
   gap: 20px;
@@ -283,6 +317,9 @@ function goBack() {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+@media (max-width: 640px) {
+  .page-content { padding: 0 16px 16px; }
+}
 
 .info-item {
   display: grid;
@@ -342,6 +379,11 @@ function goBack() {
   color: var(--color-text);
   line-height: 1.6;
 }
+
+.checkin-bar { padding: 16px 0 0; display: flex; align-items: center; }
+.checkin-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; font-size: 15px; font-weight: 700; color: #fff; background: #16a34a; border: none; border-radius: 10px; cursor: pointer; transition: background var(--transition); }
+.checkin-btn:hover { background: #15803d; }
+.checkin-done { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; font-size: 15px; font-weight: 700; color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; }
 
 .header-leaders {
   display: flex;

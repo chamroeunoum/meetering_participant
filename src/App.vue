@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { usePortalStore } from '@/stores/portal'
-import AccessCodePage from '@/components/AccessCodePage.vue'
 import ocmLogo from '@/assets/logo.svg'
 
 const portalStore = usePortalStore()
@@ -43,15 +42,11 @@ const dateStr = computed(() => {
     </div>
 
     <div class="topbar-right">
-      <!-- Clock -->
       <div class="topbar-clock">
         <span class="clock-time">{{ timeStr }}</span>
         <span class="clock-date">{{ dateStr }}</span>
       </div>
-
       <span class="topbar-divider" />
-
-      <!-- Visitor -->
       <div v-if="visitor" class="visitor-wrap">
         <div class="visitor-info">
           <strong>{{ visitor.name }}</strong>
@@ -63,8 +58,7 @@ const dateStr = computed(() => {
   </header>
 
   <div class="app-shell">
-    <AccessCodePage v-if="!portalStore.hasAccess" />
-    <router-view v-else />
+    <router-view />
     <footer class="app-footer">
       <p>&copy; {{ new Date().getFullYear() }} ទីស្ដីការគណៈរដ្ឋមន្ត្រី។ រក្សាសិទ្ធិគ្រប់យ៉ាង។</p>
     </footer>
@@ -72,7 +66,6 @@ const dateStr = computed(() => {
 </template>
 
 <style>
-/* ===== Global Styles ===== */
 @import url('https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Khmer:wght@400;500;600;700&family=Noto+Serif+Khmer:wght@400;700&family=Suwannaphum:wght@300;400;700&family=Moul:wght@400&display=swap');
 
 :root {
@@ -109,130 +102,46 @@ body {
   font-size: 16px;
   line-height: 1.7;
   color: var(--color-text);
-  background:
-    linear-gradient(180deg, rgba(245, 248, 252, 0.92) 0%, rgba(245, 248, 252, 0.88) 100%),
-    url('/assets/ocm-building-hero.png') center 30% / cover fixed;
+  background: linear-gradient(180deg, rgba(245, 248, 252, 0.92) 0%, rgba(245, 248, 252, 0.88) 100%), url('/assets/ocm-building-hero.png') center 30% / cover fixed;
   -webkit-font-smoothing: antialiased;
 }
 #app { min-height: 100%; }
 
-.app-shell {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  padding-top: 72px;
-  padding-bottom: 33px;
-}
-
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 33px; }
 a { color: inherit; text-decoration: none; }
 button, input { font: inherit; }
 button { cursor: pointer; }
 
 /* ===== Flag ===== */
-.flag-bar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  height: 6px;
-}
+.flag-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; flex-direction: column; height: 6px; }
 .flag-stripe.blue-top { height: 2px; background: #032ea1; }
 .flag-stripe.red { height: 2px; background: #e00025; }
 .flag-stripe.blue-bottom { height: 2px; background: #032ea1; }
 
 /* ===== Top Bar ===== */
-.app-topbar {
-  position: fixed;
-  top: 6px; left: 0; right: 0;
-  z-index: 199;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 20px;
-  height: 66px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--color-border-soft);
-}
-
+.app-topbar { position: fixed; top: 6px; left: 0; right: 0; z-index: 199; display: flex; align-items: center; justify-content: space-between; padding: 6px 20px; height: 66px; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); border-bottom: 1px solid var(--color-border-soft); }
 .topbar-left { display: flex; align-items: center; gap: 12px; }
 .topbar-logo { width: 44px; height: 44px; object-fit: contain; }
-
 .topbar-text { text-align: left; }
-.topbar-text strong {
-  display: block;
-  font-family: var(--font-heading);
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-text);
-  line-height: 1.2;
-}
-.topbar-text span {
-  display: block;
-  font-size: 10px;
-  color: var(--color-accent);
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  margin-top: 1px;
-}
+.topbar-text strong { display: block; font-family: var(--font-heading); font-size: 16px; font-weight: 700; color: var(--color-text); line-height: 1.2; }
+.topbar-text span { display: block; font-size: 10px; color: var(--color-accent); font-weight: 600; letter-spacing: 0.3px; margin-top: 1px; }
 
-/* ===== Right Side ===== */
 .topbar-right { display: flex; align-items: center; gap: 14px; }
-
-.topbar-divider {
-  display: block;
-  width: 1px;
-  height: 30px;
-  background: #d1d5db;
-  flex-shrink: 0;
-}
-
+.topbar-divider { display: block; width: 1px; height: 30px; background: #d1d5db; flex-shrink: 0; }
 .topbar-clock { text-align: right; line-height: 1.2; }
-.clock-time {
-  display: block;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--color-text);
-  font-variant-numeric: tabular-nums;
-}
-.clock-date {
-  display: block;
-  font-size: 10px;
-  color: var(--color-text-secondary);
-  margin-top: 1px;
-}
+.clock-time { display: block; font-size: 15px; font-weight: 700; color: var(--color-text); font-variant-numeric: tabular-nums; }
+.clock-date { display: block; font-size: 10px; color: var(--color-text-secondary); margin-top: 1px; }
 
 .visitor-wrap { display: flex; align-items: center; gap: 10px; }
 .visitor-info { text-align: right; }
-.visitor-info strong {
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-text);
-  line-height: 1.2;
-}
-.visitor-info span {
-  display: block;
-  font-size: 11px;
-  color: var(--color-text-secondary);
-  margin-top: 1px;
-}
-.visitor-avatar {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
+.visitor-info strong { display: block; font-size: 13px; font-weight: 700; color: var(--color-text); line-height: 1.2; }
+.visitor-info span { display: block; font-size: 11px; color: var(--color-text-secondary); margin-top: 1px; }
+.visitor-avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--color-primary); color: #fff; font-size: 14px; font-weight: 700; flex-shrink: 0; }
 
 /* ===== Utilities ===== */
 .card { background: var(--color-bg-card); border: 1px solid var(--color-border-soft); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.card-body { padding: 20px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--color-border-soft); }
 .form-group { display: grid; gap: 8px; }
 .form-label { font-weight: 700; }
 .form-input { width: 100%; min-height: 46px; padding: 10px 12px; color: var(--color-text); background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
@@ -247,16 +156,7 @@ button { cursor: pointer; }
 .embedded-portal { flex: 1; }
 
 /* ===== Footer ===== */
-.app-footer {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  z-index: 50;
-  text-align: center;
-  padding: 7px 16px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
-  background: linear-gradient(180deg, #0d1b3e 0%, #07122a 100%);
-}
+.app-footer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; text-align: center; padding: 7px 16px; font-size: 11px; color: rgba(255,255,255,0.5); background: linear-gradient(180deg, #0d1b3e 0%, #07122a 100%); }
 .app-footer p { margin: 0; }
 
 @media (max-width: 640px) {
@@ -267,37 +167,5 @@ button { cursor: pointer; }
   .topbar-text span { display: none; }
   .clock-date { display: none; }
   .visitor-info { display: none; }
-}
-
-.page-content {
-  width: min(1200px, 100%);
-  margin: 0 auto;
-  padding: 20px 24px 40px;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--color-border-soft);
-}
-
-.card-title {
-  font-family: var(--font-heading);
-  font-size: 17px;
-  font-weight: 400;
-  color: var(--color-text);
-}
-
-.card-body {
-  padding: 20px;
-}
-
-.empty-state {
-  padding: 32px 16px;
-  color: var(--color-text-secondary);
-  text-align: center;
 }
 </style>
