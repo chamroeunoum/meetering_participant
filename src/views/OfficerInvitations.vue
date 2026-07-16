@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/utils/api'
 import { formatDate, formatTimeRange } from '@/utils/data'
 import {
-  ArrowLeft, Mail, Copy, CheckCheck, RefreshCw, Calendar, Clock, MapPin, Users,
+  ArrowLeft, Mail, Copy, CheckCheck, RefreshCw, Send, SendHorizontal, Calendar, Clock, MapPin, Users,
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -23,6 +23,15 @@ function showToast(msg: string, type: 'success' | 'error') {
   setTimeout(() => { toast.value = null }, 3000)
 }
 
+function goBack() {
+  router.push('/')
+}
+
+const sentCount = computed(() => invitations.value.filter((i: any) => i.invitation_sent).length)
+const checkedInCount = computed(() => invitations.value.filter((i: any) => i.checked_in).length)
+const allCodesGenerated = computed(() => invitations.value.every((i: any) => i.unique_code))
+const hasUnsent = computed(() => invitations.value.some((i: any) => !i.invitation_sent && i.unique_code))
+
 async function loadMeetings() {
   try {
     const res = await api.get('/meetings')
@@ -36,9 +45,10 @@ async function loadMeetings() {
   }
 }
 
-async function selectMeetingFn(id: string) {
-  selectedMeeting.value = meetings.value.find((m: any) => String(m.id) === id) || null
-  await loadInvitations(id)
+async function selectMeetingFn(id: any) {
+  const strId = String(id)
+  selectedMeeting.value = meetings.value.find((m: any) => String(m.id) === strId) || null
+  await loadInvitations(strId)
 }
 
 async function loadInvitations(meetingId: string) {
@@ -67,8 +77,9 @@ async function handleGenerateCodes() {
 async function handleGenerateSingleCode(memberId: number) {
   if (!selectedMeeting.value) return
   try {
-    await api.post('/' + selectedMeeting.value.id + '/invitations/generate-code/' + memberId)
+    const res = await api.post('/' + selectedMeeting.value.id + '/invitations/generate-code/' + memberId)
     await loadInvitations(selectedMeeting.value.id)
+    showToast(res.data?.message || 'បានបង្កើតលេខកូដ', 'success')
   } catch {
     showToast('បង្កើតលេខកូដមិនបានជោគជ័យ', 'error')
   }
@@ -95,6 +106,64 @@ async function handleMarkSent(memberId: number) {
     showToast('បានសម្គាល់ថាបានផ្ញើការអញ្ជើញ', 'success')
   } catch {
     showToast('ដំណើរការមិនបានជោគជ័យ', 'error')
+  }
+}
+
+async function handleSendInvitation(memberId: number) {
+  if (!selectedMeeting.value) return
+  loading.value = true
+  try {
+    const res = await api.post('/' + selectedMeeting.value.id + '/invitations/send/' + memberId)
+    await loadInvitations(selectedMeeting.value.id)
+    showToast(res.data?.message || 'បានផ្ញើការអញ្ជើញតាមអ៊ីមែល', 'success')
+  } catch (err: any) {
+    const msg = err.response?.data?.message || 'ផ្ញើអ៊ីមែលមិនបានជោគជ័យ'
+    showToast(msg, 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleSendAll() {
+  if (!selectedMeeting.value) return
+  loading.value = true
+  try {
+    const res = await api.post('/' + selectedMeeting.value.id + '/invitations/send-all')
+    await loadInvitations(selectedMeeting.value.id)
+    showToast(res.data?.message || 'បានផ្ញើការអញ្ជើញទាំងអស់', 'success')
+  } catch (err: any) {
+    const msg = err.response?.data?.message || 'ផ្ញើអ៊ីមែលមិនបានជោគជ័យ'
+    showToast(msg, 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleSendTelegram(memberId: number) {
+  if (!selectedMeeting.value) return
+  loading.value = true
+  try {
+    const res = await api.post('/' + selectedMeeting.value.id + '/invitations/send-telegram/' + memberId)
+    showToast(res.data?.message || 'បានផ្ញើតាម Telegram', 'success')
+  } catch (err: any) {
+    const msg = err.response?.data?.message || 'ផ្ញើ Telegram មិនបានជោគជ័យ'
+    showToast(msg, 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleSendTelegramAll() {
+  if (!selectedMeeting.value) return
+  loading.value = true
+  try {
+    const res = await api.post('/' + selectedMeeting.value.id + '/invitations/send-telegram-all')
+    showToast(res.data?.message || 'បានផ្ញើតាម Telegram ទាំងអស់', 'success')
+  } catch (err: any) {
+    const msg = err.response?.data?.message || 'ផ្ញើ Telegram មិនបានជោគជ័យ'
+    showToast(msg, 'error')
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -150,17 +219,34 @@ async function handleMarkSent(memberId: number) {
           <div class="toolbar">
             <div class="toolbar-left">
               <h2>{{ selectedMeeting.objective }}</h2>
-              <span class="meeting-date">{{ formatDate(selectedMeeting.date) }} · {{ formatTimeRange(selectedMeeting.start, selectedMeeting.end) }}</span>
+              <span class="meeting-date">{{ formatDate(selectedMeeting.date) }} · {{ formatTimeRange(selectedMeeting.startTime || selectedMeeting.start, selectedMeeting.endTime || selectedMeeting.end) }}</span>
             </div>
             <div class="toolbar-actions">
               <span class="badge-count">{{ invitations.length }} អ្នកចូលរួម</span>
               <span class="badge-sent">{{ sentCount }} បានផ្ញើ</span>
               <span class="badge-checkin">{{ checkedInCount }} បានចូល</span>
               <button class="btn-gen" type="button" :disabled="allCodesGenerated" @click="handleGenerateCodes">
-                <RefreshCw :size="15" :class="{ spinning: loading }" /> បង្កើតលេខកូដ
+                <RefreshCw :size="15" :class="{ spinning: loading }" /> បង្កើតលេខកូដទាំងអស់
               </button>
               <button v-if="allCodesGenerated" class="btn-copy-all" type="button" @click="copyAllCodes">
                 <Copy :size="15" /> ចម្លងទាំងអស់
+              </button>
+              <button
+                v-if="hasUnsent"
+                class="btn-send-all"
+                type="button"
+                :disabled="loading"
+                @click="handleSendAll"
+              >
+                <Send :size="15" /> ផ្ញើអ៊ីមែលទាំងអស់
+              </button>
+              <button
+                class="btn-send-telegram-all"
+                type="button"
+                :disabled="loading"
+                @click="handleSendTelegramAll"
+              >
+                <SendHorizontal :size="15" /> Telegram ទាំងអស់
               </button>
             </div>
           </div>
@@ -182,7 +268,7 @@ async function handleMarkSent(memberId: number) {
                   <td class="td-name"><strong>{{ inv.name }}</strong></td>
                   <td class="td-pos">{{ inv.role }}</td>
                   <td class="td-contact">
-                    <a :href="`mailto:${inv.email}`" class="contact-link" title="ផ្ញើអ៊ីមែល">{{ inv.email }}</a>
+                    <span v-if="inv.email" class="contact-link" title="ផ្ញើអ៊ីមែល">{{ inv.email }}</span>
                     <span v-if="inv.telegram" class="contact-tg" title="Telegram">{{ inv.telegram }}</span>
                   </td>
                   <td class="td-code">
@@ -193,9 +279,7 @@ async function handleMarkSent(memberId: number) {
                         <Copy v-else :size="14" />
                       </button>
                     </template>
-                    <button v-else class="btn-sm" type="button" @click="handleGenerateSingleCode(inv.id)">
-                      <RefreshCw :size="12" /> បង្កើត
-                    </button>
+                    <span v-else class="no-code">—</span>
                   </td>
                   <td class="td-status">
                     <span v-if="inv.invitation_sent" class="status-sent">បានផ្ញើ</span>
@@ -208,10 +292,20 @@ async function handleMarkSent(memberId: number) {
                       class="btn-action"
                       type="button"
                       :disabled="!inv.unique_code"
-                      :title="inv.unique_code ? 'សម្គាល់ថាបានផ្ញើ' : 'សូមបង្កើតលេខកូដជាមុន'"
-                      @click="handleMarkSent(inv.id)"
+                      :title="inv.unique_code ? 'ផ្ញើការអញ្ជើញតាមអ៊ីមែល' : 'សូមបង្កើតលេខកូដជាមុន'"
+                      @click="handleSendInvitation(inv.id)"
                     >
-                      <Mail :size="14" /> ផ្ញើ
+                      <Mail :size="14" /> អ៊ីមែល
+                    </button>
+                    <button
+                      v-if="!inv.invitation_sent"
+                      class="btn-action telegram"
+                      type="button"
+                      :disabled="!inv.unique_code"
+                      :title="'ផ្ញើតាម Telegram'"
+                      @click="handleSendTelegram(inv.id)"
+                    >
+                      <SendHorizontal :size="14" /> Telegram
                     </button>
                     <button
                       v-else
@@ -259,7 +353,7 @@ async function handleMarkSent(memberId: number) {
 .layout { display: flex; gap: 20px; min-height: 500px; }
 
 /* Sidebar */
-.meeting-sidebar { width: 300px; flex-shrink: 0; }
+.meeting-sidebar { width: 400px; flex-shrink: 0; }
 .sidebar-title { margin: 0 0 12px; font-family: var(--font-heading); font-size: 16px; color: var(--color-text); }
 .meeting-list { display: grid; gap: 8px; }
 .meeting-card { text-align: left; padding: 14px 16px; border: 1px solid var(--color-border-soft); border-radius: 12px; background: rgba(255,255,255,0.6); cursor: pointer; transition: all var(--transition); }
@@ -275,7 +369,7 @@ async function handleMarkSent(memberId: number) {
 .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; background: rgba(255,255,255,0.7); border: 1px solid var(--color-border-soft); border-radius: 12px; margin-bottom: 16px; flex-wrap: wrap; }
 .toolbar-left h2 { margin: 0; font-size: 17px; font-family: var(--font-heading); color: var(--color-text); }
 .meeting-date { font-size: 12px; color: var(--color-text-secondary); }
-.toolbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.toolbar-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .badge-count, .badge-sent, .badge-checkin { padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
 .badge-count { color: var(--color-primary); background: rgba(13,98,213,0.08); }
 .badge-sent { color: #15803d; background: #f0fdf4; }
@@ -284,43 +378,66 @@ async function handleMarkSent(memberId: number) {
 .btn-gen { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 13px; font-weight: 700; color: #fff; background: var(--color-primary); border: none; border-radius: 8px; cursor: pointer; }
 .btn-gen:disabled { opacity: 0.5; cursor: default; }
 .btn-copy-all { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 13px; font-weight: 600; color: var(--color-primary); background: rgba(13,98,213,0.06); border: 1px solid rgba(13,98,213,0.2); border-radius: 8px; cursor: pointer; }
+.btn-send-all { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 13px; font-weight: 700; color: #fff; background: #16a34a; border: none; border-radius: 8px; cursor: pointer; }
+.btn-send-all:hover { background: #15803d; }
+.btn-send-all:disabled { opacity: 0.5; cursor: default; }
+.btn-send-telegram-all { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 13px; font-weight: 700; color: #fff; background: #26a5e4; border: none; border-radius: 8px; cursor: pointer; }
+.btn-send-telegram-all:hover { background: #1e8fc7; }
+.btn-send-telegram-all:disabled { opacity: 0.5; cursor: default; }
+.btn-action.telegram { color: #fff; background: #26a5e4; }
+.btn-action.telegram:hover { background: #1e8fc7; }
 .spinning { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Table */
 .table-wrap { overflow-x: auto; border: 1px solid var(--color-border-soft); border-radius: 12px; background: rgba(255,255,255,0.8); }
-.inv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.inv-table th { padding: 12px 14px; text-align: left; font-size: 11px; font-weight: 700; color: var(--color-text-secondary); background: #f8fafc; border-bottom: 1px solid var(--color-border-soft); white-space: nowrap; }
-.inv-table td { padding: 12px 14px; border-bottom: 1px solid var(--color-border-soft); vertical-align: middle; }
+.inv-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+.inv-table th { padding: 12px 10px; text-align: left; font-size: 11px; font-weight: 700; color: var(--color-text-secondary); background: #f8fafc; border-bottom: 1px solid var(--color-border-soft); white-space: nowrap; }
+.inv-table td { padding: 10px; border-bottom: 1px solid var(--color-border-soft); vertical-align: middle; word-break: break-word; }
 .inv-table tr:last-child td { border-bottom: 0; }
 .inv-table tr:hover { background: rgba(13,98,213,0.015); }
 
+/* Column widths */
+.inv-table th:nth-child(1),
+.inv-table td:nth-child(1) { width: 20%; }
+.inv-table th:nth-child(2),
+.inv-table td:nth-child(2) { width: 12%; }
+.inv-table th:nth-child(3),
+.inv-table td:nth-child(3) { width: 18%; }
+.inv-table th:nth-child(4),
+.inv-table td:nth-child(4) { width: 18%; }
+.inv-table th:nth-child(5),
+.inv-table td:nth-child(5) { width: 14%; }
+.inv-table th:nth-child(6),
+.inv-table td:nth-child(6) { width: 18%; }
+
 .td-name strong { font-size: 13px; color: var(--color-text); }
 .td-pos { color: var(--color-text-secondary); font-size: 12px; }
-.td-contact { display: grid; gap: 2px; }
-.contact-link { color: var(--color-primary); font-size: 12px; text-decoration: none; }
+.td-contact { flex-direction: column; gap: 2px; }
+.contact-link { color: var(--color-primary); font-size: 12px; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
 .contact-link:hover { text-decoration: underline; }
 .contact-tg { color: #26a5e4; font-size: 11px; }
 
 .td-code { white-space: nowrap; }
-.code-text { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700; color: var(--color-text); letter-spacing: 1px; padding: 2px 6px; background: #f1f5f9; border-radius: 4px; }
-.btn-icon { display: inline-grid; place-items: center; width: 26px; height: 26px; margin-left: 4px; border: none; border-radius: 6px; background: transparent; cursor: pointer; color: var(--color-text-secondary); }
+.code-text { font-family: 'Courier New', monospace; font-size: 12px; font-weight: 700; color: var(--color-text); letter-spacing: 1px; padding: 2px 6px; background: #f1f5f9; border-radius: 4px; }
+.btn-icon { display: inline-grid; place-items: center; width: 24px; height: 24px; margin-left: 4px; border: none; border-radius: 6px; background: transparent; cursor: pointer; color: var(--color-text-secondary); vertical-align: middle; }
 .btn-icon:hover { background: #f1f5f9; }
 .icon-copied { color: #22c55e; }
 .btn-sm { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; font-size: 11px; font-weight: 600; color: var(--color-primary); background: rgba(13,98,213,0.06); border: 1px solid rgba(13,98,213,0.2); border-radius: 6px; cursor: pointer; }
 
-.td-status { display: grid; gap: 4px; }
+.td-status { flex-direction: column; gap: 4px; }
 .status-sent { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #15803d; background: #f0fdf4; }
 .status-pending { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #a16207; background: #fef9c3; }
 .status-checkedin { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; color: var(--color-primary); background: rgba(13,98,213,0.08); }
 
-.td-actions { white-space: nowrap; }
-.btn-action { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #fff; background: var(--color-primary); border: none; border-radius: 6px; cursor: pointer; }
+.td-actions { white-space: nowrap; gap: 6px; align-items: center; flex-wrap: wrap; }
+.btn-action { display: inline-flex; margin-right: 5px; align-items: center; float: right; gap: 4px; padding: 6px 10px; font-size: 11px; font-weight: 600; color: #fff; background: var(--color-primary); border: none; border-radius: 6px; cursor: pointer; white-space: nowrap; }
 .btn-action:disabled { opacity: 0.4; cursor: default; }
 .btn-action.unsent { color: var(--color-text-secondary); background: #f1f5f9; border: 1px solid var(--color-border); }
 
 .empty-row { text-align: center; padding: 40px !important; color: var(--color-text-secondary); }
 .no-meeting { text-align: center; padding: 60px; color: var(--color-text-secondary); }
+.no-code { color: var(--color-text-secondary); font-size: 13px; }
 
 @media (max-width: 900px) {
   .layout { flex-direction: column; }

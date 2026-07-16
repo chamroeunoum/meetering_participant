@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Calendar, CheckSquare, Clock, FileText, MapPin, Users } from 'lucide-vue-next'
 import { usePortalStore } from '@/stores/portal'
 import { useMeetingWorkspaceStore } from '@/stores/meetingWorkspace'
+import participantApi from '@/utils/participantApi'
 import {
   formatDate,
   formatTimeRange,
-  getMeetingById,
   getMeetingOrganizations,
   getMeetingRooms,
   getStatusBadge,
@@ -24,7 +24,23 @@ const portalStore = usePortalStore()
 const workspace = useMeetingWorkspaceStore()
 
 const meetingId = computed(() => (route.query.id as string) || (route.query.meeting as string) || 'm1')
-const meeting = computed(() => getMeetingById(meetingId.value))
+const meeting = ref<any>(null)
+const loading = ref(true)
+const invitationCode = computed(() => route.query.code as string || '')
+
+onMounted(async () => {
+  try {
+    const res = await participantApi.get('/meetings/' + meetingId.value + '/read')
+    meeting.value = res.data?.data || null
+  } catch {
+    meeting.value = null
+  } finally {
+    loading.value = false
+  }
+})
+
+// Guard: prevent render if meeting data is not available yet
+const meetingReady = computed(() => !loading.value && !!meeting.value)
 const isFromCalendar = computed(() => route.query.from === 'calendar')
 const ws = computed(() => (meeting.value ? workspace.getWorkspace(meeting.value.id) : null))
 
@@ -117,7 +133,17 @@ function goBack() {
         <h1 class="header-title">មើលព័ត៌មានកិច្ចប្រជុំ</h1>
       </div>
     </header>
-    <div class="page-content">
+    <div v-if="loading" class="page-content">
+      <div class="loading-state">
+        <p>កំពុងផ្ទុកព័ត៌មានកិច្ចប្រជុំ...</p>
+      </div>
+    </div>
+    <div v-else-if="!meeting" class="page-content">
+      <div class="loading-state">
+        <p>រកមិនឃើញព័ត៌មានកិច្ចប្រជុំ</p>
+      </div>
+    </div>
+    <div v-else class="page-content">
       <div class="meeting-detail">
         <div class="detail-header card">
           <div class="card-body">
@@ -136,7 +162,7 @@ function goBack() {
             <div class="header-info grid-4">
               <div class="info-item"><span class="info-label">ប្រភេទកិច្ចប្រជុំ</span><span class="info-value">{{ meeting.type?.name || meeting.category }}</span></div>
               <div class="info-item"><span class="info-label">អង្គភាពពាក់ព័ន្ធ</span><span class="info-value">{{ displayOrganizations.join(', ') || 'មិនទាន់កំណត់' }}</span></div>
-              <div class="info-item"><span class="info-label">លេខកូដកិច្ចប្រជុំ</span><span class="info-value code">{{ meeting.meetingCode }}</span></div>
+              <div class="info-item"><span class="info-label">លេខកូដកិច្ចប្រជុំ</span><span class="info-value code">{{ invitationCode || meeting.meetingCode }}</span></div>
               <div class="info-item compact-link-item"><span class="info-label">តំណកិច្ចប្រជុំ</span><a :href="meeting.meetingLink" target="_blank" rel="noreferrer" class="info-value link">{{ meeting.meetingLink }}</a></div>
             </div>
             <div v-if="meeting.route" class="header-route">
@@ -227,6 +253,8 @@ function goBack() {
 .header-title { margin: 0; font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--color-text); }
 .embedded-portal { flex: 1; width: 100%; }
 .page-content { width: 100%; padding: 0 24px 24px; }
+.loading-state { display: grid; place-items: center; min-height: 300px; }
+.loading-state p { color: var(--color-text-secondary); font-size: 16px; }
 .meeting-detail {
   display: grid;
   gap: 20px;

@@ -1,7 +1,9 @@
 import axios from 'axios'
 
+const API_SERVER = import.meta.env.VITE_API_SERVER || '/api/admin'
+
 const api = axios.create({
-  baseURL: '/api/meeting',
+  baseURL: API_SERVER,
   headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 })
 

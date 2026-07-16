@@ -1,10 +1,35 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { usePortalStore } from '@/stores/portal'
 import ocmLogo from '@/assets/logo.svg'
+import { LogOut } from 'lucide-vue-next'
 
+const router = useRouter()
 const portalStore = usePortalStore()
-const visitor = computed(() => portalStore.visitor)
+const displayName = computed(() => {
+  const info = portalStore.personInfo
+  if (info?.firstname) {
+    return (info.firstname + ' ' + (info.lastname || '')).trim()
+  }
+  return portalStore.visitor?.name || ''
+})
+const displayTitle = computed(() => {
+  const info = portalStore.personInfo
+  if (info?.email) return info.email
+  if (info?.phone) return info.phone
+  return portalStore.visitor?.title || ''
+})
+const displayAvatar = computed(() => {
+  const info = portalStore.personInfo
+  if (info?.firstname) return info.firstname.charAt(0).toUpperCase()
+  return portalStore.visitor?.avatar || 'ភ'
+})
+
+function handleLogout() {
+  portalStore.reset()
+  router.push('/')
+}
 
 const now = ref(new Date())
 let timer: ReturnType<typeof setInterval> | null = null
@@ -47,13 +72,16 @@ const dateStr = computed(() => {
         <span class="clock-date">{{ dateStr }}</span>
       </div>
       <span class="topbar-divider" />
-      <div v-if="visitor" class="visitor-wrap">
+      <div v-if="displayName" class="visitor-wrap">
         <div class="visitor-info">
-          <strong>{{ visitor.name }}</strong>
-          <span>{{ visitor.title }}</span>
+          <strong>{{ displayName }}</strong>
+          <span>{{ displayTitle }}</span>
         </div>
-        <span class="visitor-avatar">{{ visitor.avatar }}</span>
+        <span class="visitor-avatar">{{ displayAvatar }}</span>
       </div>
+      <button class="logout-btn" type="button" title="ចាកចេញ" @click="handleLogout">
+        <LogOut :size="16" :stroke-width="2.5" />
+      </button>
     </div>
   </header>
 
@@ -137,6 +165,8 @@ button { cursor: pointer; }
 .visitor-info strong { display: block; font-size: 13px; font-weight: 700; color: var(--color-text); line-height: 1.2; }
 .visitor-info span { display: block; font-size: 11px; color: var(--color-text-secondary); margin-top: 1px; }
 .visitor-avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--color-primary); color: #fff; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.logout-btn { display: inline-grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--color-border); border-radius: 10px; background: #fff; color: var(--color-text-secondary); cursor: pointer; transition: all var(--transition); flex-shrink: 0; }
+.logout-btn:hover { color: var(--color-danger); border-color: var(--color-danger); background: var(--color-danger-light); }
 
 /* ===== Utilities ===== */
 .card { background: var(--color-bg-card); border: 1px solid var(--color-border-soft); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }

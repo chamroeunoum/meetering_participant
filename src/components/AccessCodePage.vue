@@ -2,8 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePortalStore } from '@/stores/portal'
-import { isValidPortalCode, sendOtp, isValidOtp } from '@/data/access'
-import { lookupByCode } from '@/data/participant-codes'
+import participantApi from '@/utils/participantApi'
 
 const router = useRouter()
 const portalStore = usePortalStore()
@@ -14,79 +13,128 @@ const activeTab = ref<'code' | 'contact'>('code')
 // --- Meeting code tab ---
 const code = ref('')
 const codeError = ref('')
+const submittingCode = ref(false)
 
-function submitCode(event: Event) {
+async function submitCode(event: Event) {
   event.preventDefault()
   const trimmed = code.value.trim().toUpperCase()
+  if (!trimmed) return
 
-  // Try participant-specific code → redirect to meeting detail
-  const participant = lookupByCode(trimmed)
-  if (participant) {
-    codeError.value = ''
-    portalStore.grantAccess(trimmed)
-    portalStore.setAccessType('meeting-code', participant.meetingId)
-    router.push('/meeting-viewer?id=' + participant.meetingId)
-    return
-  }
+  submittingCode.value = true
+  codeError.value = ''
 
-  // Fallback to shared portal code → redirect to calendar
-  if (isValidPortalCode(trimmed)) {
-    codeError.value = ''
+  try {
+    const res = await participantApi.post('/checkin/verify', { code: trimmed })
+    const data = res.data
+
+    if (!data.success) {
+      codeError.value = data.message || 'លេខកូដមិនត្រឹមត្រូវ។ សូមព្យាយាមម្តងទៀត។'
+      return
+    }
+
+    const meetingId = data.data?.meeting_id || ''
     portalStore.grantAccess(trimmed)
-    portalStore.setAccessType('contact')
-    router.push('/viewer-calendar')
-  } else {
-    codeError.value = 'លេខកូដមិនត្រឹមត្រូវ។ សូមព្យាយាមម្តងទៀត។'
+    portalStore.setAccessType('meeting-code', meetingId)
+
+    if (meetingId) {
+      router.push('/meeting-viewer?id=' + meetingId + '&code=' + encodeURIComponent(trimmed))
+    } else {
+      router.push('/viewer-calendar')
+    }
+  } catch (err: any) {
+    codeError.value = err.response?.data?.message || 'លេខកូដមិនត្រឹមត្រូវ។ សូមព្យាយាមម្តងទៀត។'
+  } finally {
+    submittingCode.value = false
   }
 }
 
-// --- Phone/Email tab ---
+// --- Phone/Email tab with OTP ---
 const contact = ref('')
 const contactError = ref('')
+const sendingOtp = ref(false)
 const otpSent = ref(false)
 const otpCode = ref('')
-const expectedOtp = ref('')
 const otpError = ref('')
-const sendingOtp = ref(false)
+const verifyingOtp = ref(false)
+const verifiedContact = ref('')
+const otpSentViaTelegram = ref(false)
 
-function submitContact(event: Event) {
+async function sendOtpCode(event: Event) {
   event.preventDefault()
   const val = contact.value.trim()
   if (!val) {
     contactError.value = 'សូមបញ្ចូលលេខទូរស័ព្ទ ឬអ៊ីមែល'
     return
   }
+
   contactError.value = ''
   sendingOtp.value = true
-  setTimeout(() => {
-    expectedOtp.value = sendOtp(val)
-    otpSent.value = true
-    sendingOtp.value = false
-  }, 800)
-}
 
-function submitOtp(event: Event) {
-  event.preventDefault()
-  if (isValidOtp(otpCode.value, expectedOtp.value)) {
+  try {
+    const res = await participantApi.post('/send-otp', { contact: val })
+
+    if (!res.data.success) {
+      contactError.value = res.data.message || 'រកមិនឃើញអ្នកប្រើប្រាស់នេះទេ។'
+      return
+    }
+
+    otpSent.value = true
+    verifiedContact.value = val
+    otpCode.value = ''
     otpError.value = ''
-    portalStore.grantAccessByContact(contact.value.trim())
-    portalStore.setAccessType('contact')
-    router.push('/viewer-calendar')
-  } else {
-    otpError.value = 'លេខកូដផ្ទៀងផ្ទាត់មិនត្រឹមត្រូវ។ សូមព្យាយាមម្តងទៀត។'
+    otpSentViaTelegram.value = res.data?.data?.sent_via_telegram || false
+  } catch (err: any) {
+    contactError.value = err.response?.data?.message || 'មិនអាចផ្ញើលេខកូដបានទេ។'
+  } finally {
+    sendingOtp.value = false
   }
 }
 
-function resendOtp() {
-  expectedOtp.value = sendOtp(contact.value.trim())
-  otpCode.value = ''
+async function submitOtp(event: Event) {
+  event.preventDefault()
+  if (!otpCode.value || otpCode.value.length !== 6) {
+    otpError.value = 'សូមបញ្ចូលលេខកូដ ៦ ខ្ទង់'
+    return
+  }
+
   otpError.value = ''
+  verifyingOtp.value = true
+
+  try {
+    const res = await participantApi.post('/verify-otp', {
+      contact: verifiedContact.value,
+      otp: otpCode.value,
+    })
+
+    if (!res.data.success) {
+      otpError.value = res.data.message || 'លេខកូដផ្ទៀងផ្ទាត់មិនត្រឹមត្រូវ។'
+      return
+    }
+
+    const meetings = res.data?.data?.meetings || []
+    const person = res.data?.data?.person || null
+    portalStore.setPersonMeetings(meetings, person)
+    portalStore.grantAccessByContact(verifiedContact.value)
+    portalStore.setAccessType('contact')
+    router.push('/viewer-calendar')
+  } catch (err: any) {
+    otpError.value = err.response?.data?.message || 'លេខកូដផ្ទៀងផ្ទាត់មិនត្រឹមត្រូវ។'
+  } finally {
+    verifyingOtp.value = false
+  }
 }
 
 function backToContact() {
   otpSent.value = false
   otpCode.value = ''
   otpError.value = ''
+  contactError.value = ''
+}
+
+function resendOtp() {
+  otpSent.value = false
+  contactError.value = ''
+  // Re-trigger send on next submit
 }
 </script>
 
@@ -151,17 +199,19 @@ function backToContact() {
                 />
               </div>
               <div v-if="codeError" class="access-error">{{ codeError }}</div>
-              <button class="btn btn-primary access-button" type="submit">បញ្ជាក់</button>
+              <button class="btn btn-primary access-button" type="submit" :disabled="submittingCode">
+                {{ submittingCode ? 'កំពុងពិនិត្យ...' : 'បញ្ជាក់' }}
+              </button>
             </form>
           </template>
 
-          <!-- Tab 2: Phone / Email -->
+          <!-- Tab 2: Phone / Email with OTP -->
           <template v-if="activeTab === 'contact'">
             <template v-if="!otpSent">
               <p class="access-copy">
                 សូមបញ្ចូលលេខទូរស័ព្ទ ឬអ៊ីមែលរបស់អ្នក ដើម្បីទទួលលេខកូដផ្ទៀងផ្ទាត់។
               </p>
-              <form @submit="submitContact" class="access-form">
+              <form @submit="sendOtpCode" class="access-form">
                 <div class="form-group">
                   <label class="form-label" for="contact-input">ទូរស័ព្ទ ឬ អ៊ីមែល</label>
                   <input
@@ -182,7 +232,10 @@ function backToContact() {
 
             <template v-else>
               <p class="access-copy">
-                សូមបញ្ចូលលេខកូដ ៦ ខ្ទង់ ដែលយើងបានផ្ញើទៅ <strong>{{ contact }}</strong>
+                សូមបញ្ចូលលេខកូដ ៦ ខ្ទង់ ដែលយើងបានផ្ញើ
+                <template v-if="otpSentViaTelegram">ទៅកាន់ Telegram នៃលេខទូរស័ព្ទ</template>
+                <template v-else>ទៅ</template>
+                <strong>{{ verifiedContact }}</strong>
               </p>
               <form @submit="submitOtp" class="access-form">
                 <div class="form-group">
@@ -199,7 +252,9 @@ function backToContact() {
                   />
                 </div>
                 <div v-if="otpError" class="access-error">{{ otpError }}</div>
-                <button class="btn btn-primary access-button" type="submit">ផ្ទៀងផ្ទាត់</button>
+                <button class="btn btn-primary access-button" type="submit" :disabled="verifyingOtp">
+                  {{ verifyingOtp ? 'កំពុងផ្ទៀងផ្ទាត់...' : 'ផ្ទៀងផ្ទាត់' }}
+                </button>
                 <div class="otp-actions">
                   <button class="btn btn-ghost" type="button" @click="resendOtp">ផ្ញើម្តងទៀត</button>
                   <button class="btn btn-ghost" type="button" @click="backToContact">ផ្លាស់ប្តូរ</button>

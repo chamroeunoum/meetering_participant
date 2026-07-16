@@ -20,13 +20,13 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = ''
     try {
-      const res = await api.post('/login', { email, password })
+      const res = await api.post('/authentication/login', { email, password })
       const data = res.data
 
-      if (data.token) {
-        token.value = data.token
-        user.value = data.user || null
-        localStorage.setItem('api_token', data.token)
+      if (data.token?.access_token) {
+        token.value = data.token.access_token
+        user.value = data.record || data.user || null
+        localStorage.setItem('api_token', data.token.access_token)
         return true
       }
       error.value = data.message || 'ចូលប្រើប្រាស់មិនបានជោគជ័យ'
@@ -42,7 +42,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout() {
     try {
-      await api.post('/logout')
+      await api.post('/authentication/logout')
     } catch {
       // ignore logout errors
     }
@@ -54,7 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchUser() {
     if (!token.value) return
     try {
-      const res = await api.get('/user')
+      const res = await api.get('/authentication/user')
       user.value = res.data?.user || res.data
     } catch {
       // will be caught by 401 interceptor

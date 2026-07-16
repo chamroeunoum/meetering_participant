@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Calendar } from 'lucide-vue-next'
 import { usePortalStore } from '@/stores/portal'
+import participantApi from '@/utils/participantApi'
 import {
   calendarPreviewTitles,
   formatCalendarDate,
   formatCalendarTime,
-  getCalendarMeetings,
   getCalendarUserById,
   getCalendarUserName,
   getMonthLabel,
@@ -20,13 +20,56 @@ import {
 const router = useRouter()
 const portalStore = usePortalStore()
 const today = new Date()
-const meetings = getCalendarMeetings()
+const loading = ref(true)
+
+// Fetch meetings from server on mount
+onMounted(async () => {
+  const contact = portalStore.contactInfo
+  if (contact) {
+    try {
+      const res = await participantApi.post('/lookup-contact', { contact })
+      const meetings = res.data?.data?.meetings || []
+      const person = res.data?.data?.person || null
+      portalStore.setPersonMeetings(meetings, person)
+    } catch {
+      // Server not available
+    }
+  }
+  loading.value = false
+})
+
+// Map API data to CalendarMeeting shape
+const meetings = computed<CalendarMeeting[]>(() => {
+  const stored = portalStore.personMeetings
+  if (stored && stored.length > 0) {
+    return stored.map((m: any) => ({
+      id: String(m.meeting_id),
+      title: m.objective || '',
+      objective: m.objective || '',
+      date: m.date || '',
+      startTime: m.start || '',
+      endTime: m.end || '',
+      venue: m.venue || '',
+      status: m.checked_in ? 'completed' : 'scheduled',
+      attendeeIds: [],
+      unique_code: m.unique_code || '',
+      role: m.role || '',
+      group: m.group || '',
+    }))
+  }
+  // Fallback: try fetching from API if contact info is available
+  return []
+})
+
+// Debug: log meetings data
+console.log('[Calendar] personMeetings from store:', portalStore.personMeetings)
+console.log('[Calendar] computed meetings:', meetings.value)
 const viewMode = ref<'month' | 'year'>('month')
 const visibleMonth = ref(new Date(today.getFullYear(), today.getMonth(), 1))
-const selectedMeetingId = ref(meetings.find((meeting) => meeting.date === toISODate(today))?.id || meetings[0]?.id || '')
+const selectedMeetingId = ref('')
 const activeTimeline = ref<'upcoming' | 'previous'>('upcoming')
 
-const selectedMeeting = computed(() => meetings.find((meeting) => meeting.id === selectedMeetingId.value) || meetings[0])
+const selectedMeeting = computed(() => meetings.value.find((meeting) => meeting.id === selectedMeetingId.value) || meetings.value[0])
 const monthDays = computed(() => {
   const start = new Date(visibleMonth.value.getFullYear(), visibleMonth.value.getMonth(), 1)
   const gridStart = new Date(start)
@@ -37,15 +80,15 @@ const monthDays = computed(() => {
     return date
   })
 })
-const meetingsByDate = computed<Record<string, CalendarMeeting[]>>(() => meetings.reduce((groups, meeting) => {
+const meetingsByDate = computed<Record<string, CalendarMeeting[]>>(() => meetings.value.reduce((groups, meeting) => {
   ;(groups[meeting.date] ||= []).push(meeting)
   return groups
 }, {} as Record<string, CalendarMeeting[]>))
 const visibleTimelineMeetings = computed(() => {
   const todayIso = toISODate(today)
   return activeTimeline.value === 'upcoming'
-    ? meetings.filter((meeting) => meeting.date >= todayIso)
-    : meetings.filter((meeting) => meeting.date < todayIso).slice().reverse()
+    ? meetings.value.filter((meeting) => meeting.date >= todayIso)
+    : meetings.value.filter((meeting) => meeting.date < todayIso).slice().reverse()
 })
 const previewAttendees = computed(() => (selectedMeeting.value?.attendeeIds || []).map(getCalendarUserById).filter(Boolean).slice(0, 3))
 const yearMonths = Array.from({ length: 12 }, (_, index) => new Date(today.getFullYear(), index, 1))
@@ -56,7 +99,9 @@ function goBack() {
 }
 
 function openMeeting(meeting: CalendarMeeting) {
-  router.push({ name: 'meeting-viewer', query: { meeting: meeting.id, from: 'calendar' } })
+  const query: any = { meeting: meeting.id, from: 'calendar' }
+  if (meeting.unique_code) query.code = meeting.unique_code
+  router.push({ name: 'meeting-viewer', query })
 }
 
 function selectDay(date: Date) {
@@ -70,13 +115,13 @@ function changeMonth(offset: number) {
 
 function showToday() {
   visibleMonth.value = new Date(today.getFullYear(), today.getMonth(), 1)
-  const meeting = meetings.find((item) => item.date === toISODate(today))
+  const meeting = meetings.value.find((item) => item.date === toISODate(today))
   if (meeting) selectedMeetingId.value = meeting.id
 }
 
 function monthMeetings(month: Date) {
   const key = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`
-  return meetings.filter((meeting) => meeting.date.startsWith(key))
+  return meetings.value.filter((meeting) => meeting.date.startsWith(key))
 }
 
 function previewTitle(meeting: CalendarMeeting) {
