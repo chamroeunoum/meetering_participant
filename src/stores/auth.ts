@@ -10,7 +10,8 @@ export interface AuthUser {
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('api_token') || '')
-  const user = ref<AuthUser | null>(null)
+  const savedUser = localStorage.getItem('auth_user')
+  const user = ref<AuthUser | null>(savedUser ? JSON.parse(savedUser) : null)
   const loading = ref(false)
   const error = ref('')
 
@@ -27,6 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = data.token.access_token
         user.value = data.record || data.user || null
         localStorage.setItem('api_token', data.token.access_token)
+        if (user.value) localStorage.setItem('auth_user', JSON.stringify(user.value))
         return true
       }
       error.value = data.message || 'ចូលប្រើប្រាស់មិនបានជោគជ័យ'
@@ -49,6 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = ''
     user.value = null
     localStorage.removeItem('api_token')
+    localStorage.removeItem('auth_user')
   }
 
   async function fetchUser() {
@@ -56,6 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const res = await api.get('/authentication/user')
       user.value = res.data?.user || res.data
+      if (user.value) localStorage.setItem('auth_user', JSON.stringify(user.value))
     } catch {
       // will be caught by 401 interceptor
     }

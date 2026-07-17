@@ -33,8 +33,15 @@ async function submitCode(event: Event) {
     }
 
     const meetingId = data.data?.meeting_id || ''
+    const codeType = data.code_type || 'meeting'
+
     portalStore.grantAccess(trimmed)
     portalStore.setAccessType('meeting-code', meetingId)
+
+    if (codeType === 'personal') {
+      // Personal code — mark check-in and identify participant
+      portalStore.markCheckIn(meetingId)
+    }
 
     if (meetingId) {
       router.push('/meeting-viewer?id=' + meetingId + '&code=' + encodeURIComponent(trimmed))

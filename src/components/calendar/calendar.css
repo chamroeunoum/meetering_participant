@@ -135,7 +135,7 @@
 .calendar-weekdays {
   padding: 0;
   color: #8e8e93;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 800;
   text-align: center;
   text-transform: uppercase;
@@ -197,12 +197,13 @@
 
 .calendar-date-number {
   display: inline-grid;
-  width: 31px;
-  height: 31px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   border-radius: 50%;
   color: #1c1c1e;
-  font-size: 14px;
+  font-size: 17px;
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -572,9 +573,9 @@
   }
 
   .calendar-month-layout .calendar-date-number {
-    width: 25px;
-    height: 25px;
-    font-size: 12px;
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
   }
 
   .calendar-month-layout .calendar-event-dots {

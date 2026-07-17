@@ -1,13 +1,23 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { usePortalStore } from '@/stores/portal'
+import { useAuthStore } from '@/stores/auth'
 import ocmLogo from '@/assets/logo.svg'
 import { LogOut } from 'lucide-vue-next'
 
+const route = useRoute()
 const router = useRouter()
 const portalStore = usePortalStore()
+const authStore = useAuthStore()
+
+const isOfficerRoute = computed(() => route.path.startsWith('/officer'))
+const showTopbar = computed(() => portalStore.hasAccess || (isOfficerRoute.value && authStore.isAuthenticated))
+
 const displayName = computed(() => {
+  if (isOfficerRoute.value && authStore.user) {
+    return authStore.user.name || authStore.user.email || 'Officer'
+  }
   const info = portalStore.personInfo
   if (info?.firstname) {
     return (info.firstname + ' ' + (info.lastname || '')).trim()
@@ -15,25 +25,43 @@ const displayName = computed(() => {
   return portalStore.visitor?.name || ''
 })
 const displayTitle = computed(() => {
+  if (isOfficerRoute.value && authStore.user) {
+    return authStore.user.email || ''
+  }
   const info = portalStore.personInfo
   if (info?.email) return info.email
   if (info?.phone) return info.phone
   return portalStore.visitor?.title || ''
 })
 const displayAvatar = computed(() => {
+  if (isOfficerRoute.value && authStore.user) {
+    const name = authStore.user.name || authStore.user.email || 'O'
+    return name.charAt(0).toUpperCase()
+  }
   const info = portalStore.personInfo
   if (info?.firstname) return info.firstname.charAt(0).toUpperCase()
   return portalStore.visitor?.avatar || 'ភ'
 })
 
 function handleLogout() {
-  portalStore.reset()
-  router.push('/')
+  if (isOfficerRoute.value) {
+    authStore.logout()
+    router.push('/officer/login')
+  } else {
+    portalStore.reset()
+    router.push('/')
+  }
 }
 
 const now = ref(new Date())
 let timer: ReturnType<typeof setInterval> | null = null
-onMounted(() => { timer = setInterval(() => { now.value = new Date() }, 1000) })
+onMounted(() => {
+  timer = setInterval(() => { now.value = new Date() }, 1000)
+  // Restore officer user info if token exists but user is missing
+  if (authStore.isAuthenticated && !authStore.user) {
+    authStore.fetchUser()
+  }
+})
 onUnmounted(() => { if (timer) clearInterval(timer) })
 
 function pad(n: number) { return String(n).padStart(2, '0') }
@@ -56,8 +84,8 @@ const dateStr = computed(() => {
     <div class="flag-stripe blue-bottom" />
   </div>
 
-  <!-- OCM Top Bar (hidden during verification) -->
-  <header v-if="portalStore.hasAccess" class="app-topbar">
+  <!-- OCM Top Bar -->
+  <header v-if="showTopbar" class="app-topbar">
     <div class="topbar-left">
       <img class="topbar-logo" :src="ocmLogo" alt="ទីស្ដីការគណៈរដ្ឋមន្ត្រី" />
       <div class="topbar-text">

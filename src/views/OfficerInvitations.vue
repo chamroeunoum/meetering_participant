@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import api from '@/utils/api'
 import { formatDate, formatTimeRange } from '@/utils/data'
 import {
-  ArrowLeft, Mail, Copy, CheckCheck, RefreshCw, Send, SendHorizontal, Calendar, Clock, MapPin, Users,
+  ArrowLeft, Mail, Copy, CheckCheck, RefreshCw, Send, SendHorizontal, Calendar, Clock, MapPin, Phone, Users,
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -199,11 +199,21 @@ async function handleSendTelegramAll() {
             type="button"
             @click="selectMeetingFn(m.id)"
           >
-            <strong class="mc-title">{{ m.title }}</strong>
+            <strong class="mc-title">{{ m.title || m.objective }}</strong>
+            <div v-if="m.meeting_code" class="mc-code-row">
+              <span class="mc-code">{{ m.meeting_code }}</span>
+            </div>
             <div class="mc-meta">
-              <span><Calendar :size="12" /> {{ formatDate(m.date) }}</span>
-              <span><Clock :size="12" /> {{ m.startTime }} - {{ m.endTime }}</span>
-              <span><MapPin :size="12" /> {{ m.venue }}</span>
+              <span><Calendar :size="12" /> {{ formatDate(m.date) }} · <Clock :size="12" /> {{ m.startTime }} - {{ m.endTime }}</span>
+              <span>
+                <template v-if="m.venue && (m.venue.includes('ទូរស័ព្ទ') || m.venue.includes('@'))">
+                  <div class="mc-contact-line"><Phone :size="12" /> {{ m.venue.split('|')[0]?.replace(/ទូរស័ព្ទ:\s*/i, '').trim() }}</div>
+                  <div class="mc-contact-line"><Mail :size="12" /> {{ m.venue.split('|')[1]?.replace(/អ៊ីមែល:\s*/i, '').trim() }}</div>
+                </template>
+                <template v-else>
+                  <MapPin :size="12" /> {{ m.venue }}
+                </template>
+              </span>
             </div>
             <div class="mc-stats">
               <span><Users :size="12" /> {{ m.participantCount }} នាក់</span>
@@ -219,7 +229,10 @@ async function handleSendTelegramAll() {
           <div class="toolbar">
             <div class="toolbar-left">
               <h2>{{ selectedMeeting.objective }}</h2>
-              <span class="meeting-date">{{ formatDate(selectedMeeting.date) }} · {{ formatTimeRange(selectedMeeting.startTime || selectedMeeting.start, selectedMeeting.endTime || selectedMeeting.end) }}</span>
+              <div class="meeting-meta">
+                <span class="meeting-code-badge" v-if="selectedMeeting.meeting_code">{{ selectedMeeting.meeting_code }}</span>
+                <span class="meeting-date">{{ formatDate(selectedMeeting.date) }} · {{ formatTimeRange(selectedMeeting.startTime || selectedMeeting.start, selectedMeeting.endTime || selectedMeeting.end) }}</span>
+              </div>
             </div>
             <div class="toolbar-actions">
               <span class="badge-count">{{ invitations.length }} អ្នកចូលរួម</span>
@@ -353,21 +366,26 @@ async function handleSendTelegramAll() {
 .layout { display: flex; gap: 20px; min-height: 500px; }
 
 /* Sidebar */
-.meeting-sidebar { width: 400px; flex-shrink: 0; }
+.meeting-sidebar { width: 400px; min-width: 400px; max-width: 400px; flex-shrink: 0; }
 .sidebar-title { margin: 0 0 12px; font-family: var(--font-heading); font-size: 16px; color: var(--color-text); }
 .meeting-list { display: grid; gap: 8px; }
-.meeting-card { text-align: left; padding: 14px 16px; border: 1px solid var(--color-border-soft); border-radius: 12px; background: rgba(255,255,255,0.6); cursor: pointer; transition: all var(--transition); }
+.meeting-card { width: 400px; min-width: 400px; max-width: 400px; text-align: left; padding: 14px 16px; border: 1px solid var(--color-border-soft); border-radius: 12px; background: rgba(255,255,255,0.6); cursor: pointer; transition: all var(--transition); box-sizing: border-box; }
 .meeting-card:hover, .meeting-card.active { border-color: var(--color-primary); background: rgba(13,98,213,0.03); }
 .mc-title { display: block; font-size: 14px; line-height: 1.4; margin-bottom: 6px; color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mc-code-row { margin-bottom: 6px; }
+.mc-code { font-size: 12px; font-weight: 700; color: var(--color-text-secondary); font-family: 'Courier New', monospace; }
 .mc-meta { display: grid; gap: 3px; font-size: 11px; color: var(--color-text-secondary); margin-bottom: 6px; }
 .mc-meta span { display: flex; align-items: center; gap: 4px; }
-.mc-stats { display: flex; gap: 10px; font-size: 11px; color: var(--color-text-secondary); }
+.mc-contact-line { display: flex; align-items: center; gap: 4px; margin-top: 4px; margin-right: 4px; }
+.mc-stats { display: flex; gap: 10px; font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; margin-left: 4px; }
 .stat-checked { color: #15803d; font-weight: 700; }
 
 /* Main */
 .main-content { flex: 1; min-width: 0; }
 .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; background: rgba(255,255,255,0.7); border: 1px solid var(--color-border-soft); border-radius: 12px; margin-bottom: 16px; flex-wrap: wrap; }
 .toolbar-left h2 { margin: 0; font-size: 17px; font-family: var(--font-heading); color: var(--color-text); }
+.meeting-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.meeting-code-badge { display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #fff; background: var(--color-primary); border-radius: 999px; font-family: 'Courier New', monospace; }
 .meeting-date { font-size: 12px; color: var(--color-text-secondary); }
 .toolbar-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .badge-count, .badge-sent, .badge-checkin { padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
