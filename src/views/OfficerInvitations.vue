@@ -4,10 +4,166 @@ import { useRouter } from 'vue-router'
 import api from '@/utils/api'
 import { formatDate, formatTimeRange } from '@/utils/data'
 import {
-  ArrowLeft, Mail, Copy, CheckCheck, RefreshCw, Send, SendHorizontal, Calendar, Clock, MapPin, Phone, Users,
+  ArrowLeft, Mail, Copy, CheckCheck, RefreshCw, Send, SendHorizontal, Calendar, Clock, MapPin, Phone, Users, QrCode,
 } from 'lucide-vue-next'
 
+import QRCode from 'qrcode'
+
 const router = useRouter()
+
+// QR modal
+const showQrModal = ref(false)
+const qrMeeting = ref<any>(null)
+const qrDataUrl = ref('')
+const qrCheckinUrl = ref('')
+
+async function showQrForMeeting(m: any, event: Event) {
+  event.stopPropagation()
+  qrMeeting.value = m
+  const origin = window.location.origin
+  const url = origin + '/checkin?code=' + encodeURIComponent(m.meeting_code)
+  qrCheckinUrl.value = url
+  showQrModal.value = true
+  await buildQrPrintImage(m, url)
+}
+
+async function buildQrPrintImage(m: any, url: string) {
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')!
+  const w = 800, h = 1100
+  canvas.width = w
+  canvas.height = h
+
+  // ── White background ──
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillRect(0, 0, w, h)
+
+  // ── Decorative border (black) ──
+  const mg = 24
+  ctx.save()
+  ctx.strokeStyle = '#000000'
+  ctx.lineWidth = 2.5
+  ctx.strokeRect(mg, mg, w - mg * 2, h - mg * 2)
+  ctx.strokeStyle = '#999999'
+  ctx.lineWidth = 1
+  ctx.setLineDash([8, 5])
+  ctx.strokeRect(mg + 10, mg + 10, w - mg * 2 - 20, h - mg * 2 - 20)
+  ctx.setLineDash([])
+  const cs = 14
+  const corners = [[mg+5,mg+5],[w-mg-5,mg+5],[mg+5,h-mg-5],[w-mg-5,h-mg-5]]
+  ctx.fillStyle = '#000000'
+  for (const [cx, cy] of corners) {
+    ctx.beginPath()
+    ctx.moveTo(cx, cy - cs); ctx.lineTo(cx + cs, cy)
+    ctx.lineTo(cx, cy + cs); ctx.lineTo(cx - cs, cy)
+    ctx.closePath(); ctx.fill()
+  }
+  ctx.restore()
+
+  // ── Load logo for watermark ──
+  try {
+    const logoUrl = (await import('@/assets/logo.svg')).default
+    const logoImg = new Image()
+    await new Promise((resolve, reject) => { logoImg.onload = resolve; logoImg.onerror = reject; logoImg.src = logoUrl })
+    ctx.save()
+    ctx.globalAlpha = 0.035
+    ctx.drawImage(logoImg, (w - 400) / 2, (h - 400) / 2, 400, 400)
+    ctx.restore()
+  } catch { /* watermark unavailable */ }
+
+  // ── Date top-right (YmdHis) ──
+  const now = new Date()
+  const dateStr = String(now.getFullYear()) +
+    String(now.getMonth()+1).padStart(2,'0') +
+    String(now.getDate()).padStart(2,'0') +
+    String(now.getHours()).padStart(2,'0') +
+    String(now.getMinutes()).padStart(2,'0') +
+    String(now.getSeconds()).padStart(2,'0')
+  ctx.fillStyle = 'rgba(0,0,0,0.12)'
+  ctx.font = '11px Inter, sans-serif'
+  ctx.textAlign = 'right'
+  ctx.fillText(dateStr, w - mg - 14, mg + 32)
+
+  // ── Word-wrap objective ──
+  const obj = m.objective || m.title || ''
+  ctx.font = 'bold 24px "Noto Sans Khmer", Inter, sans-serif'
+  const maxTW = w - 80
+  const objLines: string[] = []
+  let line = ''
+  for (const char of obj) {
+    const test = line + char
+    if (ctx.measureText(test).width > maxTW) { objLines.push(line); line = char }
+    else line = test
+  }
+  if (line) objLines.push(line)
+
+  // ── Intro text (fixed at top-left) ──
+  ctx.fillStyle = '#000000'
+  ctx.font = 'bold 22px Inter, "Noto Sans Khmer", sans-serif'
+  ctx.textAlign = 'left'
+  ctx.fillText('ចុះឈ្មោះចូលរួមកិច្ចប្រជុំ', mg + 28, mg + 56)
+  ctx.font = '16px Inter, "Noto Sans Khmer", sans-serif'
+  ctx.fillStyle = '#444444'
+  ctx.fillText('ស្កេន QR ខាងក្រោមដើម្បីចុះឈ្មោះចូលរួម', mg + 28, mg + 86)
+
+  // ── Vertically center rest of content ──
+  const qrSize = 320
+  const codeH = 40
+  const objLineH = 34
+  const objH = objLines.length * objLineH
+  const totalH = qrSize + 20 + codeH + 14 + objH
+  const startY = (h - totalH) / 2 + 20
+
+  // ── QR Code ──
+  const qrData = await QRCode.toDataURL(url, { width: 340, margin: 2, color: { dark: '#000000', light: '#FFFFFF' } })
+  const qrImg = new Image()
+  await new Promise((resolve) => { qrImg.onload = resolve; qrImg.src = qrData })
+  const qrX = (w - qrSize) / 2
+  const qrY = startY
+  ctx.fillStyle = '#FFFFFF'
+  ctx.beginPath()
+  ctx.roundRect(qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 10)
+  ctx.fill()
+  ctx.strokeStyle = '#CCCCCC'
+  ctx.lineWidth = 1
+  ctx.stroke()
+  ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize)
+
+  // ── Meeting code ──
+  const codeY = qrY + qrSize + 20
+  ctx.fillStyle = '#000000'
+  ctx.font = 'bold 36px "Courier New", monospace'
+  ctx.textAlign = 'center'
+  ctx.fillText(m.meeting_code || '', w / 2, codeY + codeH - 4)
+
+  // ── Objective ──
+  ctx.fillStyle = '#000000'
+  ctx.font = 'bold 24px "Noto Sans Khmer", Inter, sans-serif'
+  ctx.textAlign = 'center'
+  let oy = codeY + codeH + 14 + 26
+  for (const l of objLines) { ctx.fillText(l, w / 2, oy); oy += objLineH }
+
+  // ── Bottom OCM title ──
+  ctx.fillStyle = '#000000'
+  ctx.font = 'bold 16px Inter, "Noto Sans Khmer", sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText('ទីស្ដីការគណៈរដ្ឋមន្ត្រី · Office of the Council of Ministers', w / 2, h - mg - 16)
+
+  qrDataUrl.value = canvas.toDataURL('image/jpeg', 0.95)
+}
+function downloadQr() {
+  if (!qrDataUrl.value) return
+  const link = document.createElement('a')
+  link.download = (qrMeeting.value?.meeting_code || 'qrcode') + '.png'
+  link.href = qrDataUrl.value
+  link.click()
+}
+
+function copyQrUrl() {
+  if (!qrCheckinUrl.value) return
+  navigator.clipboard.writeText(qrCheckinUrl.value)
+  showToast('បានចម្លងតំណ', 'success')
+}
 
 onMounted(() => { loadMeetings() })
 
@@ -244,6 +400,9 @@ async function handleSendTelegramAll() {
               <button v-if="allCodesGenerated" class="btn-copy-all" type="button" @click="copyAllCodes">
                 <Copy :size="15" /> ចម្លងទាំងអស់
               </button>
+              <button v-if="selectedMeeting?.meeting_code" class="btn-gen btn-qr" type="button" @click="showQrForMeeting(selectedMeeting, $event)">
+                <QrCode :size="15" /> QR បោះពុម្ព
+              </button>
               <button
                 v-if="hasUnsent"
                 class="btn-send-all"
@@ -343,6 +502,25 @@ async function handleSendTelegramAll() {
       </main>
     </div>
   </div>
+
+  <!-- QR Modal -->
+  <Teleport to="body">
+    <div v-if="showQrModal" class="qr-overlay" @click.self="showQrModal = false">
+      <div class="qr-modal">
+        <button class="qr-modal-close" type="button" @click="showQrModal = false">✕</button>
+        <h3 class="qr-modal-title">QR សម្រាប់បោះពុម្ព</h3>
+        <p class="qr-modal-sub" v-if="qrMeeting">{{ qrMeeting.meeting_code }} · {{ qrMeeting.objective || qrMeeting.title }}</p>
+        <div class="qr-image-wrap">
+          <img v-if="qrDataUrl" :src="qrDataUrl" alt="QR Code" class="qr-image" />
+          <div v-else class="qr-loading">កំពុងបង្កើត...</div>
+        </div>
+        <div class="qr-actions">
+          <button class="btn btn-primary" type="button" @click="downloadQr">ទាញយក PNG</button>
+          <button class="btn btn-secondary" type="button" @click="copyQrUrl">ចម្លងតំណ</button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -377,7 +555,8 @@ async function handleSendTelegramAll() {
 .mc-meta { display: grid; gap: 3px; font-size: 11px; color: var(--color-text-secondary); margin-bottom: 6px; }
 .mc-meta span { display: flex; align-items: center; gap: 4px; }
 .mc-contact-line { display: flex; align-items: center; gap: 4px; margin-top: 4px; margin-right: 4px; }
-.mc-stats { display: flex; gap: 10px; font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; margin-left: 4px; }
+.mc-stats { display: flex; gap: 10px; font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; margin-left: 4px; align-items: center; }
+.btn-qr { background: #0D62D5; margin-left: 4px; }
 .stat-checked { color: #15803d; font-weight: 700; }
 
 /* Main */
@@ -470,4 +649,16 @@ async function handleSendTelegramAll() {
   .header-title { font-size: 18px; }
   .inv-table td, .inv-table th { padding: 10px; }
 }
+
+/* QR Modal */
+.qr-overlay { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: rgba(0,0,0,0.5); padding: 24px; }
+.qr-modal { background: #fff; border-radius: 20px; padding: 24px; max-width: 560px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.15); position: relative; max-height: 90vh; display: flex; flex-direction: column; }
+.qr-modal-close { position: absolute; top: 12px; right: 16px; border: none; background: none; font-size: 20px; color: var(--color-text-secondary); cursor: pointer; z-index: 1; }
+.qr-modal-title { margin: 0 0 4px; font-family: var(--font-heading); font-size: 18px; color: var(--color-text); }
+.qr-modal-sub { font-size: 13px; color: var(--color-text-secondary); margin: 0 0 16px; }
+.qr-image-wrap { display: grid; place-items: center; margin: 0 auto 16px; overflow: hidden; flex: 1; min-height: 0; }
+.qr-image { max-width: 100%; max-height: 60vh; width: auto; height: auto; border: 1px solid var(--color-border); border-radius: 8px; object-fit: contain; }
+.qr-loading { width: 200px; height: 200px; display: grid; place-items: center; color: var(--color-text-secondary); font-size: 14px; }
+.qr-actions { display: flex; gap: 10px; justify-content: center; }
+.qr-actions .btn { min-height: 38px; padding: 6px 20px; font-size: 13px; }
 </style>

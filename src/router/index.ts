@@ -80,16 +80,19 @@ router.beforeEach((to, from) => {
     return { name: 'access' }
   }
 
-  // Logged in via meeting code → only allow meeting-viewer
-  if (portalStore.accessType === 'meeting-code' && to.name !== 'meeting-viewer') {
-    return { name: 'meeting-viewer', query: { id: portalStore.restrictedMeetingId || 'm1' } }
-  }
+  // Skip portal guards for officer routes
+  if (!to.path.startsWith('/officer')) {
+    // Logged in via meeting code → only allow meeting-viewer
+    if (portalStore.accessType === 'meeting-code' && to.name !== 'meeting-viewer') {
+      return { name: 'meeting-viewer', query: { id: portalStore.restrictedMeetingId || 'm1' } }
+    }
 
-  // Logged in via contact → allow calendar, meeting-viewer, checkin only
-  if (portalStore.accessType === 'contact') {
-    const allowedRoutes = ['viewer-calendar', 'meeting-viewer', 'checkin']
-    if (!allowedRoutes.includes(to.name as string)) {
-      return { name: 'viewer-calendar' }
+    // Logged in via contact → allow calendar, meeting-viewer, checkin only
+    if (portalStore.accessType === 'contact') {
+      const allowedRoutes = ['viewer-calendar', 'meeting-viewer', 'checkin']
+      if (!allowedRoutes.includes(to.name as string)) {
+        return { name: 'viewer-calendar' }
+      }
     }
   }
 })

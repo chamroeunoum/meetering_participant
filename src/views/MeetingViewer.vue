@@ -162,7 +162,8 @@ function goBack() {
             <div class="header-info grid-4">
               <div class="info-item"><span class="info-label">ប្រភេទកិច្ចប្រជុំ</span><span class="info-value">{{ meeting.type?.name || meeting.category }}</span></div>
               <div class="info-item"><span class="info-label">អង្គភាពពាក់ព័ន្ធ</span><span class="info-value">{{ displayOrganizations.join(', ') || 'មិនទាន់កំណត់' }}</span></div>
-              <div class="info-item"><span class="info-label">លេខកូដកិច្ចប្រជុំ</span><span class="info-value code">{{ invitationCode || meeting.meetingCode }}</span></div>
+              <div class="info-item"><span class="info-label">លេខកូដកិច្ចប្រជុំ</span><span class="info-value code">{{ meeting.meetingCode || meeting.meeting_code }}</span></div>
+              <div v-if="invitationCode && meeting.meetingCode !== invitationCode" class="info-item"><span class="info-label">លេខកូដអញ្ជើញ</span><span class="info-value code">{{ invitationCode }}</span></div>
               <div class="info-item compact-link-item"><span class="info-label">តំណកិច្ចប្រជុំ</span><a :href="meeting.meetingLink" target="_blank" rel="noreferrer" class="info-value link">{{ meeting.meetingLink }}</a></div>
             </div>
             <div v-if="meeting.route" class="header-route">
