@@ -188,15 +188,30 @@ const checkedInCount = computed(() => invitations.value.filter((i: any) => i.che
 const allCodesGenerated = computed(() => invitations.value.every((i: any) => i.unique_code))
 const hasUnsent = computed(() => invitations.value.some((i: any) => !i.invitation_sent && i.unique_code))
 
+// Extra meeting shown only in this app (not stored in the backend)
+const staticMeeting = {
+  id: 'm7',
+  title: 'កិច្ចប្រជុំប្រចាំខែរបស់អង្គភាព (Omnis 88)',
+  objective: 'កិច្ចប្រជុំប្រចាំខែរបស់អង្គភាព (Omnis 88)',
+  meeting_code: 'OMNIS88-2026-07',
+  date: '2026-07-25',
+  startTime: '09:00',
+  endTime: '11:00',
+  venue: 'បន្ទប់ប្រជុំ Omnis 88',
+  participantCount: 2,
+  checkedInCount: 0,
+}
+
 async function loadMeetings() {
   try {
     const res = await api.get('/meetings')
     const data = res.data?.data || res.data || []
-    meetings.value = Array.isArray(data) ? data : []
+    meetings.value = [...(Array.isArray(data) ? data : []), staticMeeting]
     if (meetings.value.length > 0 && !selectedMeeting.value) {
       selectMeetingFn(meetings.value[0].id)
     }
   } catch {
+    meetings.value = [staticMeeting]
     showToast('មិនអាចផ្ទុកបញ្ជីកិច្ចប្រជុំបានទេ', 'error')
   }
 }

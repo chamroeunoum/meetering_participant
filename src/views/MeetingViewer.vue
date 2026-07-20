@@ -8,6 +8,7 @@ import participantApi from '@/utils/participantApi'
 import {
   formatDate,
   formatTimeRange,
+  getMeetingById,
   getMeetingOrganizations,
   getMeetingRooms,
   getStatusBadge,
@@ -31,10 +32,16 @@ const invitationCode = computed(() => route.query.code as string || '')
 onMounted(async () => {
   try {
     const res = await participantApi.get('/meetings/' + meetingId.value + '/read')
-    meeting.value = res.data?.data || null
+    meeting.value = res.data?.data || getMeetingById(meetingId.value) || null
   } catch {
-    meeting.value = null
+    meeting.value = getMeetingById(meetingId.value) || null
   } finally {
+    // Legal-draft viewing/history reads meeting.legalDraft directly (not the
+    // mock-seeded workspace) — borrow the sample draft when the real backend
+    // meeting doesn't have one yet, so the draft tabs aren't left blank.
+    if (meeting.value && !meeting.value.legalDraft) {
+      meeting.value.legalDraft = getMeetingById('m1')?.legalDraft || null
+    }
     loading.value = false
   }
 })

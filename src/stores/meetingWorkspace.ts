@@ -109,7 +109,9 @@ export const useMeetingWorkspaceStore = defineStore('meetingWorkspace', () => {
   function ensureWorkspace(meetingId: string): MeetingWorkspace {
     const existing = workspaces[meetingId]
     if (existing) return existing
-    const meeting = getMeetingById(meetingId)
+    // Real (backend-fetched) meetings aren't in the mock file yet — show
+    // placeholder content borrowed from the sample meeting instead of blank tabs.
+    const meeting = getMeetingById(meetingId) || getMeetingById('m1')
     const created: MeetingWorkspace = {
       agendas: meeting ? structuredClone(meeting.agenda) : [],
       participants: meeting ? structuredClone(meeting.participants) : [],

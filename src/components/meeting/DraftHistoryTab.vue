@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { CheckCircle2, Clock3, History, UserRound } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { ArrowLeft, CheckCircle2, Clock3, History, UserRound } from 'lucide-vue-next'
+import DraftPdfSection from '../DraftPdfSection.vue'
 import { useMeetingWorkspaceStore } from '@/stores/meetingWorkspace'
 import type { Meeting } from '@/utils/data'
 
@@ -8,53 +9,93 @@ const props = defineProps<{ meeting: Meeting }>()
 
 const workspace = useMeetingWorkspaceStore()
 const ws = computed(() => workspace.getWorkspace(props.meeting.id))
+
+// Comments stay open until the meeting is over (same rule as the main draft tab).
+const canComment = computed(() => props.meeting.status !== 'completed' && props.meeting.status !== 'cancelled')
+
+// null = showing the version list; otherwise the id of the version being viewed inline.
+const viewingVersionId = ref<string | null>(null)
+
+function viewVersion(v: { id: string }) {
+  workspace.selectDraftVersion(props.meeting.id, v.id)
+  viewingVersionId.value = v.id
+}
+
+function backToList() {
+  // Restore the latest version as the "current" one so other tabs (e.g. សេចក្តីព្រាង)
+  // aren't left pointed at whatever old version was being browsed here.
+  const latest = ws.value.draftVersions[0]
+  if (latest) workspace.selectDraftVersion(props.meeting.id, latest.id)
+  viewingVersionId.value = null
+}
 </script>
 
 <template>
-  <div class="history-tab">
-    <div class="history-head">
-      <div class="history-head-icon"><History :size="18" :stroke-width="2.2" /></div>
-      <div>
-        <h3>ប្រវត្តិកំណែសេចក្តីព្រាង</h3>
-        <p>តាមដានការកែសម្រួល និងវិវត្តន៍នៃសេចក្តីព្រាងតាមកំណែនីមួយៗ</p>
+  <div class="history-tab" :class="{ 'is-viewing': viewingVersionId }">
+    <template v-if="viewingVersionId">
+      <button type="button" class="back-to-list-btn" @click="backToList">
+        <ArrowLeft :size="15" :stroke-width="2.4" />
+        ត្រឡប់ទៅបញ្ជីកំណែ
+      </button>
+      <div v-if="!meeting.legalDraft" class="empty-state">មិនទាន់មានសេចក្តីព្រាងច្បាប់ទេ</div>
+      <DraftPdfSection
+        v-else
+        mode="embedded"
+        :pdf-url="meeting.legalDraft.pdf_url"
+        :docx-url="meeting.legalDraft.docx_url"
+        :editable="canComment"
+        :title="meeting.legalDraft.title"
+        :version="meeting.legalDraft.version_number"
+        :status="meeting.legalDraft.status"
+        :regulator="meeting.legalDraft.regulator"
+        :meeting-id="meeting.id"
+        :start-with-sidebar="true"
+      />
+    </template>
+
+    <template v-else>
+      <div class="history-head">
+        <div class="history-head-icon"><History :size="18" :stroke-width="2.2" /></div>
+        <div>
+          <h3>ប្រវត្តិកំណែសេចក្តីព្រាង</h3>
+          <p>តាមដានការកែសម្រួល និងវិវត្តន៍នៃសេចក្តីព្រាងតាមកំណែនីមួយៗ</p>
+        </div>
+        <span class="history-count">{{ ws.draftVersions.length }} កំណែ</span>
       </div>
-      <span class="history-count">{{ ws.draftVersions.length }} កំណែ</span>
-    </div>
 
-    <div v-if="ws.draftVersions.length === 0" class="empty-state">មិនទាន់មានប្រវត្តិកំណែ</div>
+      <div v-if="ws.draftVersions.length === 0" class="empty-state">មិនទាន់មានប្រវត្តិកំណែ</div>
 
-    <ol v-else class="timeline">
-      <li v-for="(v, i) in ws.draftVersions" :key="v.id" class="timeline-entry">
-        <div class="timeline-rail">
-          <div class="version-badge" :class="{ current: i === 0 }">v{{ v.version_number }}</div>
-          <div v-if="i < ws.draftVersions.length - 1" class="timeline-connector" />
-        </div>
+      <ol v-else class="timeline">
+        <li v-for="(v, i) in ws.draftVersions" :key="v.id" class="timeline-entry">
+          <div class="timeline-rail">
+            <div class="version-badge" :class="{ current: i === 0 }">v{{ v.version_number }}</div>
+            <div v-if="i < ws.draftVersions.length - 1" class="timeline-connector" />
+          </div>
 
-        <div class="timeline-card" :class="{ current: i === 0 }">
-          <div class="timeline-card-head">
-            <div class="status-group">
-              <span class="status-pill" :class="v.status === 'final' ? 'is-final' : 'is-progress'">
-                <component :is="v.status === 'final' ? CheckCircle2 : Clock3" :size="12" :stroke-width="2.6" />
-                {{ v.status === 'final' ? 'ចុងក្រោយ' : 'កំពុងដំណើរការ' }}
-              </span>
-              <span v-if="i === 0" class="current-pill">កំណែបច្ចុប្បន្ន</span>
+          <div class="timeline-card" :class="{ current: i === 0 }">
+            <div class="timeline-card-head">
+              <div class="status-group">
+                <span class="status-pill" :class="v.status === 'final' ? 'is-final' : 'is-progress'">
+                  <component :is="v.status === 'final' ? CheckCircle2 : Clock3" :size="12" :stroke-width="2.6" />
+                  {{ v.status === 'final' ? 'ចុងក្រោយ' : 'កំពុងដំណើរការ' }}
+                </span>
+                <span v-if="i === 0" class="current-pill">កំណែបច្ចុប្បន្ន</span>
+              </div>
+              <button type="button" class="view-btn" @click="viewVersion(v)">មើលសេចក្តីព្រាង</button>
             </div>
-            <router-link :to="{ name: 'DraftViewer', params: { meeting_id: meeting.id, draft_id: v.id } }" class="view-btn">
-              មើលសេចក្តីព្រាង
-            </router-link>
-          </div>
 
-          <p class="timeline-message">{{ v.message }}</p>
+            <p class="timeline-message">{{ v.message }}</p>
 
-          <div class="timeline-card-foot">
-            <span class="actor">
-              <UserRound :size="13" :stroke-width="2.3" />
-              {{ v.actor }}
-            </span>
+            <div class="timeline-card-foot">
+              <span class="actor">
+                <UserRound :size="13" :stroke-width="2.3" />
+                {{ v.actor }}
+              </span>
+            </div>
           </div>
-        </div>
-      </li>
-    </ol>
+        </li>
+      </ol>
+    </template>
   </div>
 </template>
 
@@ -63,6 +104,31 @@ const ws = computed(() => workspace.getWorkspace(props.meeting.id))
   min-width: 0;
   max-width: 720px;
   margin: 0 auto;
+}
+
+.history-tab.is-viewing {
+  max-width: none;
+  margin: 0;
+}
+
+.back-to-list-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  transition: all var(--transition);
+}
+
+.back-to-list-btn:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 .history-head {

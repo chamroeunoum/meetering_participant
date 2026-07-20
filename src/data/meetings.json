@@ -298,5 +298,83 @@
     "agenda": [],
     "survey": { "title": "HR Update Survey", "questions": [], "totalResponses": 0 },
     "analytics": { "attendanceRate": 86, "duration": 60, "agendaCompletion": 100, "engagementScore": 72, "categoryBreakdown": { "HR": 100 }, "timeDistribution": { "Presentation": 45, "Q&A": 15 } }
+  },
+  {
+    "id": "m7",
+    "title": "កិច្ចប្រជុំប្រចាំខែរបស់អង្គភាព (Omnis 88)",
+    "date": "2026-07-25",
+    "startTime": "09:00",
+    "endTime": "11:00",
+    "venue": "បន្ទប់ប្រជុំ Omnis 88",
+    "roomId": "r2",
+    "coordinatorId": "u3",
+    "attendeeIds": ["u3", "u5", "u1", "u4", "u6"],
+    "objective": "កិច្ចប្រជុំប្រចាំខែរបស់អង្គភាព (Omnis 88)",
+    "type": { "id": 7, "name": "កិច្ចប្រជុំប្រចាំខែ" },
+    "route": "ជាន់ទី៣ អគារ Omnis 88 ត្រង់ចេញពីច្រកចូល បត់ឆ្វេង បន្ទប់ប្រជុំស្ថិតនៅចុងផ្លូវ។",
+    "participants": [
+      { "id": "p7-1", "userId": "u3", "role": "leader", "group": "lead_meeting" },
+      { "id": "p7-2", "userId": "u4", "role": "deputy_leader", "group": "lead_meeting" },
+      { "id": "p7-3", "userId": "u5", "role": "member", "group": "audient" },
+      { "id": "p7-4", "userId": "u1", "role": "member", "group": "defender" },
+      { "id": "p7-5", "userId": "u6", "role": "member", "group": "audient" }
+    ],
+    "seatAssignments": { "r2-ht-1": "p7-1", "r2-ht-2": "p7-2" },
+    "docSections": {
+      "ministerPreeng": [
+        { "id": "m7-mp1", "name": "លិខិតអនុញ្ញាតប្រជុំប្រចាំខែ.pdf", "url": "/docs/meeting-doc-09.pdf" }
+      ],
+      "seichdeyPreeng": [
+        { "id": "m7-sp1", "name": "សេចក្តីព្រាងសម្រាប់ពិភាក្សា_Omnis88.pdf", "url": "/docs/meeting-doc-10.pdf" }
+      ],
+      "techReports": [
+        { "id": "m7-tr1", "name": "របាយការណ៍បច្ចេកទេសប្រចាំខែ.pdf", "url": "/docs/meeting-doc-11.pdf" }
+      ],
+      "reports": [
+        { "id": "m7-rp1", "name": "របាយការណ៍សង្ខេបលទ្ធផលប្រចាំខែ.pdf", "url": "/docs/meeting-doc-12.pdf" }
+      ],
+      "otherDocuments": [
+        { "id": "m7-od1", "name": "ឯកសារភ្ជាប់ផ្សេងៗ.pdf", "url": "/docs/meeting-doc-13.pdf" }
+      ]
+    },
+    "checklist": {
+      "pre": [
+        { "id": "m7-pre-1", "item_name": "ម៉ាស៊ីនពង្រីកសំឡេង", "equipment_status": "working", "is_checked": true, "checked_at": "08:30" },
+        { "id": "m7-pre-2", "item_name": "ម៉ាស៊ីនបញ្ចាំង LCD", "equipment_status": "working", "is_checked": false, "checked_at": null }
+      ],
+      "post": [
+        { "id": "m7-post-1", "item_name": "ម៉ាស៊ីនពង្រីកសំឡេង", "equipment_status": "working", "is_checked": false, "checked_at": null }
+      ]
+    },
+    "legalDraft": {
+      "id": "ld-m7",
+      "title": "សេចក្តីព្រាងសេចក្តីសម្រេចស្តីពីកិច្ចប្រជុំប្រចាំខែរបស់អង្គភាព Omnis 88",
+      "status": "progressing",
+      "version_number": 2,
+      "regulator": "អង្គភាព Omnis 88",
+      "pdf_url": "/docs/meeting-doc-10.pdf",
+      "docx_url": ""
+    },
+    "meetingLink": "",
+    "meetingCode": "OMNIS88-2026-07",
+    "status": "scheduled",
+    "category": "Monthly",
+    "meetingType": "លើកទី២",
+    "meetingMode": "ចូលរួមផ្ទាល់",
+    "level": "អគ្គនាយក",
+    "expectedAttendees": "៥ នាក់",
+    "vip": "",
+    "notes": "# កិច្ចប្រជុំប្រចាំខែ\n\n## ចំណុចពិភាក្សាចម្បង\n\n- [ ] ពិនិត្យលទ្ធផលការងារខែមុន\n- [ ] ផែនការការងារខែបន្ទាប់\n- [x] សម្របសម្រួលធនធាន",
+    "documents": [
+      { "id": "m7-d1", "name": "កំណត់ត្រាសេចក្តីព្រាង.pdf", "type": "document", "category": "Presentation", "url": "/docs/meeting-doc-10.pdf", "pageCount": 4 }
+    ],
+    "agenda": [
+      { "id": "m7-a1", "topic": "សុន្ទរកថាស្វាគមន៍", "start_time": "09:00", "duration": 10, "handlerIds": ["p7-1"] },
+      { "id": "m7-a2", "topic": "ពិនិត្យលទ្ធផលការងារខែមុន", "start_time": "09:10", "duration": 40, "handlerIds": ["p7-2"] },
+      { "id": "m7-a3", "topic": "ផែនការការងារខែបន្ទាប់", "start_time": "09:50", "duration": 40, "handlerIds": ["p7-3"] },
+      { "id": "m7-a4", "topic": "សំណួរ និងចម្លើយ", "start_time": "10:30", "duration": 30, "handlerIds": [] }
+    ],
+    "survey": { "title": "Omnis 88 Monthly Meeting Feedback", "questions": [{ "id": "m7-sq1", "text": "How would you rate this meeting?", "type": "rating", "avgScore": 4.0 }], "totalResponses": 1 },
+    "analytics": { "attendanceRate": 0, "duration": 120, "agendaCompletion": 0, "engagementScore": 0, "categoryBreakdown": { "Monthly": 100 }, "timeDistribution": { "Presentation": 50, "Discussion": 50 } }
   }
 ]
