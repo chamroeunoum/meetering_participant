@@ -268,7 +268,7 @@ function goBack() {
 .header-center { display: flex; align-items: center; gap: 10px; }
 .header-icon { display: grid; place-items: center; width: 40px; height: 40px; color: var(--color-primary); background: rgba(13,98,213,0.08); border-radius: 10px; }
 .header-title { margin: 0; font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--color-text); }
-.embedded-portal { flex: 1; width: 100%; }
+.embedded-portal { flex: 1; width: 100%; padding-top: 80px; }
 .page-content { width: 100%; padding: 0 24px 24px; }
 .loading-state { display: grid; place-items: center; min-height: 300px; }
 .loading-state p { color: var(--color-text-secondary); font-size: 16px; }
