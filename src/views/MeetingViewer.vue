@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Calendar, CheckSquare, Clock, FileText, MapPin, Users } from 'lucide-vue-next'
 import { usePortalStore } from '@/stores/portal'
@@ -29,7 +29,8 @@ const meeting = ref<any>(null)
 const loading = ref(true)
 const invitationCode = computed(() => route.query.code as string || '')
 
-onMounted(async () => {
+async function loadMeeting() {
+  loading.value = true
   try {
     const res = await participantApi.get('/meetings/' + meetingId.value + '/read')
     meeting.value = res.data?.data || getMeetingById(meetingId.value) || null
@@ -44,7 +45,15 @@ onMounted(async () => {
     }
     loading.value = false
   }
-})
+}
+
+onMounted(loadMeeting)
+// Vue Router reuses this component instance when navigating between meetings
+// on the same route (e.g. clicking a different meeting while already on
+// /meeting-viewer) — onMounted alone won't refire, leaving the previous
+// meeting's data (including its legal draft) stuck on screen until a full
+// page reload. Refetch whenever the id in the URL actually changes.
+watch(meetingId, loadMeeting)
 
 // Guard: prevent render if meeting data is not available yet
 const meetingReady = computed(() => !loading.value && !!meeting.value)
