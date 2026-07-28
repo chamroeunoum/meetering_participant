@@ -131,15 +131,6 @@ function goBack() {
 
 <template>
   <div class="embedded-portal">
-    <header class="service-header">
-      <button class="back-btn" type="button" @click="goBack">
-        <ArrowLeft :size="20" :stroke-width="2.5" /> ត្រឡប់
-      </button>
-      <div class="header-center">
-        <div class="header-icon"><FileText :size="22" :stroke-width="2" /></div>
-        <h1 class="header-title">មើលព័ត៌មានកិច្ចប្រជុំ</h1>
-      </div>
-    </header>
     <div v-if="loading" class="page-content">
       <div class="loading-state">
         <p>កំពុងផ្ទុកព័ត៌មានកិច្ចប្រជុំ...</p>
@@ -253,8 +244,6 @@ function goBack() {
 </template>
 
 <style scoped>
-.service-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px 16px; border-bottom: 1px solid var(--color-border-soft); }
-.back-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 14px; font-weight: 600; color: var(--color-primary); background: rgba(255,255,255,0.8); border: 1px solid var(--color-border); border-radius: 10px; cursor: pointer; transition: all var(--transition); }
 .back-btn:hover { background: #fff; border-color: var(--color-primary); }
 .header-center { display: flex; align-items: center; gap: 10px; }
 .header-icon { display: grid; place-items: center; width: 40px; height: 40px; color: var(--color-primary); background: rgba(13,98,213,0.08); border-radius: 10px; }

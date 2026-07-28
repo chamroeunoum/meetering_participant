@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePortalStore } from '@/stores/portal'
 import participantApi from '@/utils/participantApi'
@@ -40,6 +40,7 @@ const inviteCodeError = ref('')
 // Result toast
 const scanResult = ref<'idle' | 'success' | 'error'>('idle')
 const resultMessage = ref('')
+const scanError = ref('')
 
 async function loadQrScanner() {
   try {
@@ -51,7 +52,13 @@ async function loadQrScanner() {
       (decodedText: string) => { handleCode(decodedText) },
       () => { /* ignore partial scans */ }
     )
-  } catch {
+  } catch (e: any) {
+    console.error('[checkin] QR scanner error:', e)
+    if (String(e).includes('Permission denied') || String(e).includes('NotAllowed')) {
+      scanError.value = 'សូមអនុញ្ញាតឲ្យប្រើកាមេរ៉ា ឬប្រើការបញ្ចូលលេខកូដជំនួសវិញ'
+    } else {
+      scanError.value = 'មិនអាចបើកកាមេរ៉ាបានទេ សូមប្រើការបញ្ចូលលេខកូដជំនួសវិញ'
+    }
     mode.value = 'manual'
   }
 }
@@ -184,7 +191,7 @@ function switchMode(m: 'scan' | 'manual') {
   scanResult.value = 'idle'
   resultMessage.value = ''
   codeInput.value = ''
-  if (m === 'scan') loadQrScanner()
+  if (m === 'scan') nextTick(() => loadQrScanner())
   else stopScanner()
 }
 
